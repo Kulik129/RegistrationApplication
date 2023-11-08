@@ -1,6 +1,6 @@
 # Проект "Управление пользователями"
 
-Этот проект представляет собой простую веб-приложение для управления пользователями. Он включает в себя RESTful API для добавления, получения и удаления пользователей.
+Этот проект представляет собой простой микросервис для управления пользователями. Он включает в себя RESTful API для добавления, получения и удаления пользователей.
 
 ## Описание
 
@@ -28,13 +28,13 @@
 1. Клонируйте репозиторий:
 
    ```bash
-   git clone https://github.com/_проект.git
+   git clone https://github.com/Kulik129/RegistrationApplication.git
    ```
 
 2. Перейдите в каталог проекта:
 
    ```bash
-   cd _проект
+   cd out/artifacts/registration_jar
    ```
 
 3. Соберите проект с использованием Maven:
@@ -46,8 +46,21 @@
 4. Запустите приложение:
 
    ```bash
-   java -jar target/_проект.jar
+   java -jar target/registration_jar
    ```
+   Приложение будет доступно по адресу `http://localhost:8080`.
+
+## Запуск приложения без использования Maven:
+1. Перейдите в каталог проекта:
+
+   ```bash
+   cd out/artifacts/registration_jar
+   ```
+
+2. Запустите приложение с помощью команды java -jar ModuleStructure.jar:
+    ```bash
+      java -jar registration_jar
+      ```
 
 Приложение будет доступно по адресу `http://localhost:8080`.
 
@@ -82,4 +95,3 @@ GET http://localhost:8080/get?id=1
 ```http
 DELETE http://localhost:8080/delete?id=1
 ```
-
