@@ -2,6 +2,8 @@ package ru.kulik.registration.service;
 
 import ru.kulik.registration.model.User;
 
+import java.util.List;
+
 /**
  * Интерфейс для сервиса управления пользователями.
  */
@@ -27,4 +29,10 @@ public interface UserService {
      * @param id Идентификатор пользователя для удаления.
      */
     void delete(long id);
+
+    /**
+     * Находит пользователей.
+     * @return Список всех пользователей или null если не найдены.
+     */
+    List<User> getAllUsers();
 }
