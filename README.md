@@ -51,15 +51,38 @@
    Приложение будет доступно по адресу `http://localhost:8080`.
 
 ## Запуск приложения без использования Maven:
-1. Перейдите в каталог проекта:
+1. Клонируйте репозиторий:
+
+   ```bash
+   git clone https://github.com/Kulik129/RegistrationApplication.git
+   ```
+
+2. Установите Java командой:
+
+   ```bash
+   sudo apt install openjdk-17-jre-headless
+   ```
+3. Установите Javac командой:
+
+   ```bash
+      apt install openjdk-17-jdk-headless
+      ```
+
+4. Обновите командой:
+
+   ```bash
+   sudo update
+   ```
+
+5. Перейдите в каталог проекта:
 
    ```bash
    cd out/artifacts/registration_jar
    ```
 
-2. Запустите приложение с помощью команды java -jar ModuleStructure.jar:
+6. Запустите приложение с помощью команды java -jar ModuleStructure.jar:
     ```bash
-      java -jar registration_jar
+      java -jar registration.jar
       ```
 
 Приложение будет доступно по адресу `http://localhost:8080`.
