@@ -50,42 +50,24 @@
    ```
    Приложение будет доступно по адресу `http://localhost:8080`.
 
-## Запуск приложения без использования Maven:
-1. Клонируйте репозиторий:
+## Установка Java 17 на Linux:
 
-   ```bash
-   git clone https://github.com/Kulik129/RegistrationApplication.git
-   ```
-
-2. Установите Java командой:
+1. Установите Java командой:
 
    ```bash
    sudo apt install openjdk-17-jre-headless
    ```
-3. Установите Javac командой:
+2. Установите Javac командой:
 
    ```bash
       apt install openjdk-17-jdk-headless
       ```
 
-4. Обновите командой:
+3. Обновите командой:
 
    ```bash
    sudo update
    ```
-
-5. Перейдите в каталог проекта:
-
-   ```bash
-   cd out/artifacts/registration_jar
-   ```
-
-6. Запустите приложение с помощью команды java -jar ModuleStructure.jar:
-    ```bash
-      java -jar registration.jar
-      ```
-
-Приложение будет доступно по адресу `http://localhost:8080`.
 
 ## Использование API
 
@@ -111,10 +93,20 @@ GET http://localhost:8080/get?id=1
 
 ### Удаление пользователя
 
-Чтобы удалить пользователя по его идентификатору, выполните DELETE-запрос на `/delete` с параметром `id`.
+Чтобы удалить пользователя по его идентификатору, выполните DELETE-запрос на `/delete/` с параметром `id`.
 
 Пример:
 
 ```http
-DELETE http://localhost:8080/delete?id=1
+DELETE http://localhost:8080/delete/1
+```
+
+### Получение всех пользователей
+
+Чтобы получить всех пользователей выполните GET-запрос на `/get-all-users`
+
+Пример:
+
+```http
+GET http://localhost:8080/get-all-users
 ```

@@ -60,8 +60,8 @@ public class UserController {
      * @param id Идентификатор пользователя.
      * @return Найденный пользователь или null, если не найден.
      */
-    @GetMapping("/get")
-    public ResponseEntity<User> getUserById(@RequestParam long id) {
+    @GetMapping("/get/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable long id) {
         User user = userService.getUser(id);
         if (user != null) {
             return new ResponseEntity<>(user, HttpStatus.OK);
