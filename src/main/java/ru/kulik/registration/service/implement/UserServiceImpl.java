@@ -6,6 +6,8 @@ import ru.kulik.registration.model.User;
 import ru.kulik.registration.repository.UserRepository;
 import ru.kulik.registration.service.UserService;
 
+import java.util.List;
+
 /**
  * Реализация сервиса пользователей.
  * <p>
@@ -55,5 +57,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(long id) {
         userRepository.deleteById(id);
+    }
+
+    /**
+     * Находит пользователей.
+     *
+     * @return Список всех пользователей или null если не найдены.
+     */
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }
