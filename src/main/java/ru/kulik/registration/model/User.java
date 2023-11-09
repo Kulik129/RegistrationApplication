@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -28,6 +26,18 @@ public class User {
      * Имя пользователя.
      */
     private String name;
+    /**
+     * Фамилия пользователя.
+     */
+    private String surname;
+    /**
+     * Дата рождения пользователя.
+     */
+    private String dateOfBirth;
+    /**
+     * email пользователя
+     */
+    private String email;
 
     /**
      * Пароль пользователя.
@@ -41,14 +51,20 @@ public class User {
     private Date registrationDate;
 
     /**
-     * Конструктор для создания пользователя с указанным именем и паролем. Дата и время регистрации
+     * Конструктор для создания пользователя с указанным именем, фамилией, датой рождения, email и паролем. Дата и время регистрации
      * будут установлены автоматически при создании.
      *
-     * @param name     Имя пользователя.
-     * @param password Пароль пользователя.
+     * @param name        Имя пользователя.
+     * @param surname     Фамилия пользователя.
+     * @param dateOfBirth Дата рождения пользователя.
+     * @param email       email пользователя.
+     * @param password    Пароль пользователя.
      */
-    public User(String name, String password) {
+    public User(String name, String surname, String dateOfBirth, String email, String password) {
         this.name = name;
+        this.surname = surname;
+        this.dateOfBirth = dateOfBirth;
+        this.email = email;
         this.password = password;
         this.registrationDate = new Date();
     }
