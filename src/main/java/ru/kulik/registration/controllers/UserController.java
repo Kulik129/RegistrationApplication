@@ -29,8 +29,14 @@ public class UserController {
      * @param password Пароль пользователя.
      */
     @PostMapping("/add")
-    public void addUser(@RequestParam String name, @RequestParam String password) {
-        User user = new User(name, password);
+    public void addUser(
+            @RequestParam String name,
+            @RequestParam String surname,
+            @RequestParam String dateOfBirth,
+            @RequestParam String email,
+            @RequestParam String password
+    ) {
+        User user = new User(name, surname, dateOfBirth, email, password);
         userService.save(user);
     }
 
