@@ -12,10 +12,10 @@ public class CorsConfig {
     @Value("${allowed.origins}")
     private String allowedOrigins;
 
-    @Value("allowed.methods")
+    @Value("${allowed.methods}")
     private String allowedMethods;
 
-    @Value("allowed.headers")
+    @Value("${allowed.headers}")
     private String allowedHeaders;
 
     @Bean
@@ -24,9 +24,9 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins(allowedOrigins) // Разрешить доступ только с этого источника
-                        .allowedMethods(allowedMethods) // Разрешить все HTTP методы
-                        .allowedHeaders(allowedHeaders); // Разрешить все заголовки
+                        .allowedOrigins(allowedOrigins)
+                        .allowedMethods(allowedMethods)
+                        .allowedHeaders(allowedHeaders);
             }
         };
     }
