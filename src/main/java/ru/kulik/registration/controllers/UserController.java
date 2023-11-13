@@ -2,7 +2,6 @@ package ru.kulik.registration.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -11,11 +10,13 @@ import ru.kulik.registration.service.UserService;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Контроллер для управления пользователями.
  */
 @RestController
+@RequestMapping("/api/v1/users")
 public class UserController {
     private final UserService userService;
 
@@ -41,9 +42,10 @@ public class UserController {
             @RequestParam String surname,
             @RequestParam String dateOfBirth,
             @RequestParam String email,
+            @RequestParam String phoneNumber,
             @RequestParam String password
     ) {
-        User user = new User(name, surname, dateOfBirth, email, password);
+        User user = new User(name, surname, dateOfBirth, email, phoneNumber, password);
         userService.save(user);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -55,16 +57,79 @@ public class UserController {
     }
 
     /**
+     * Обновляет данные о пользователе. Имя, фамилию, дату рождения, номер телефона.
+     *
+     * @param id          id пользователя.
+     * @param updatedUser json с данными.
+     * @return ResponseEntity с обновленным пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
+     */
+    @PutMapping("/update-user-info/{id}")
+    public ResponseEntity<User> updateUser(
+            @PathVariable long id,
+            @RequestBody User updatedUser
+    ) {
+        Optional<User> user = userService.getUserByID(id);
+        if (user.isPresent()) {
+            User userUpdate = user.get();
+            userUpdate.setName(updatedUser.getName());
+            userUpdate.setSurname(updatedUser.getSurname());
+            userUpdate.setDateOfBirth(updatedUser.getDateOfBirth());
+            userUpdate.setPhoneNumber(updatedUser.getPhoneNumber());
+
+            userService.save(userUpdate);
+
+            return new ResponseEntity<>(userUpdate, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
      * Получает пользователя по идентификатору.
      *
      * @param id Идентификатор пользователя.
-     * @return Найденный пользователь или null, если не найден.
+     * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
-    @GetMapping("/get/{id}")
+    @GetMapping("{id}")
     public ResponseEntity<User> getUserById(@PathVariable long id) {
-        User user = userService.getUser(id);
-        if (user != null) {
-            return new ResponseEntity<>(user, HttpStatus.OK);
+        Optional<User> user = userService.getUserByID(id);
+
+        if (user.isPresent()) {
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * Получает пользователя по email.
+     *
+     * @param email email пользователя.
+     * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
+     */
+    @GetMapping("/by-email")
+    public ResponseEntity<User> getUserByEmail(@RequestParam String email) {
+        Optional<User> user = userService.getUserByEmail(email);
+
+        if (user.isPresent()) {
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * Получает пользователя по номеру телефона.
+     *
+     * @param phoneNumber номер тел. пользователя.
+     * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
+     */
+    @GetMapping("/by-phone-number")
+    public ResponseEntity<User> getUserByPhoneNumber(@RequestParam String phoneNumber) {
+        Optional<User> user = userService.getUserByPhone(phoneNumber);
+
+        if (user.isPresent()) {
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -73,19 +138,25 @@ public class UserController {
     /**
      * Удаляет пользователя по идентификатору.
      *
-     * @param id Идентификатор пользователя для удаления.
+     * @return Ответ со статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable long id) {
-        if (userService.getUser(id) != null) {
+
+        if (userService.getUserByID(id) != null) {
             userService.delete(id);
-            return ResponseEntity.ok("User with id "+ id + " deleted.");
+            return ResponseEntity.ok("User with id " + id + " deleted.");
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with id " + id + " not found.");
         }
     }
 
-    @GetMapping("/get-all-users")
+    /**
+     * Получает всех пользователей.
+     *
+     * @return ResponseEntity с пользователями и статусом ОК, или NOT_FOUND, если пользователи не найдены.
+     */
+    @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.getAllUsers();
 
