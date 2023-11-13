@@ -38,6 +38,10 @@ public class User {
      * email пользователя
      */
     private String email;
+    /**
+     * Номер телефона пользователя.
+     */
+    private String phoneNumber;
 
     /**
      * Пароль пользователя.
@@ -60,12 +64,13 @@ public class User {
      * @param email       email пользователя.
      * @param password    Пароль пользователя.
      */
-    public User(String name, String surname, String dateOfBirth, String email, String password) {
+    public User(String name, String surname, String dateOfBirth, String email,String phoneNumber, String password) {
         this.name = name;
         this.surname = surname;
         this.dateOfBirth = dateOfBirth;
         this.email = email;
         this.password = password;
+        this.phoneNumber = phoneNumber;
         this.registrationDate = new Date();
     }
 }
