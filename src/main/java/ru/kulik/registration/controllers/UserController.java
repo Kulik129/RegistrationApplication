@@ -1,16 +1,18 @@
 package ru.kulik.registration.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.service.UserService;
+import ru.kulik.registration.util.UserValidator;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Контроллер для управления пользователями.
@@ -19,15 +21,18 @@ import java.util.Optional;
 @RequestMapping("/api/v1/users")
 public class UserController {
     private final UserService userService;
+    private final UserValidator userValidator;
 
     /**
      * Конструктор контроллера.
      *
-     * @param userService Сервис для управления пользователями.
+     * @param userService   Сервис для управления пользователями.
+     * @param userValidator
      */
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserValidator userValidator) {
         this.userService = userService;
+        this.userValidator = userValidator;
     }
 
     /**
@@ -38,13 +43,17 @@ public class UserController {
      */
     @PostMapping("/add")
     public ResponseEntity<Void> addUser(
+            @Valid User users,
             @RequestParam String name,
             @RequestParam String surname,
             @RequestParam String dateOfBirth,
             @RequestParam String email,
             @RequestParam String phoneNumber,
-            @RequestParam String password
+            @RequestParam String password,
+            BindingResult bindingResult
     ) {
+        userValidator.validate(users, bindingResult);
+
         User user = new User(name, surname, dateOfBirth, email, phoneNumber, password);
         userService.save(user);
 
