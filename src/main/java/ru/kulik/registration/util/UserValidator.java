@@ -6,12 +6,13 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.service.UserService;
+import ru.kulik.registration.service.implement.UserServiceImpl;
 
 @Component
 public class UserValidator implements Validator {
-    private final UserService userService;
+    private final UserServiceImpl userService;
 
-    public UserValidator(UserService userService) {
+    public UserValidator(UserServiceImpl userService) {
         this.userService = userService;
     }
 
@@ -24,9 +25,14 @@ public class UserValidator implements Validator {
     public void validate(Object target, Errors errors) {
         User user = (User) target;
 
-        if (userService.getUserByEmail(user.getEmail()).isPresent()) {
-            errors.rejectValue("email", "","This email is already taken");
+//        if (userService.getUserByEmail(user.getEmail()).isPresent()) {
+//            errors.rejectValue("email", "","This email is already taken");
+//        }
+        if (userService.existsByEmail(user.getEmail())) {
+            errors.rejectValue("email","unique.email", "Этот логин занят.");
+        }
+        if (userService.existsByPhoneNumber(user.getPhoneNumber())) {
+            errors.rejectValue("phoneNumber", "unique.phoneNumber", "Этот номер телефона занят.");
         }
     }
-
 }
