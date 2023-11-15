@@ -26,6 +26,7 @@ public interface UserService {
 
     /**
      * Получает пользователя по email.
+     *
      * @param email email пользователя.
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
@@ -33,6 +34,7 @@ public interface UserService {
 
     /**
      * Получает пользователя по номеру телефона.
+     *
      * @param phone номер тел. пользователя.
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
@@ -47,6 +49,7 @@ public interface UserService {
 
     /**
      * Находит пользователей.
+     *
      * @return Список всех пользователей или null если не найдены.
      */
     List<User> getAllUsers();

@@ -16,12 +16,27 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Контроллер обработки ошибок.
+ */
 @ControllerAdvice
 @RestController
 public class RestExceptionController {
+    /**
+     * Поле в БД с email пользователей.
+     */
     private final String fieldEmail = "user.UK_ob8kqyqqgmefl0aco34akdtpe";
+    /**
+     * Поле в БД с номерами пользователей.
+     */
     private final String fieldPhoneNumber = "user.UK_4bgmpi98dylab6qdvf9xyaxu4";
+
+    /**
+     * Метод обработки не валидных значений для БД.
+     *
+     * @param ex объект класса MethodArgumentNotValidException.
+     * @return Возвращает пользователю JSON содержащий сообщение с невалидным полем и сообщением.
+     */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidation(MethodArgumentNotValidException ex) {
@@ -34,6 +49,12 @@ public class RestExceptionController {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    /**
+     * Метод обработки не валидных значений с email и phoneNumber для БД.
+     *
+     * @param ex объект класса SQLIntegrityConstraintViolationException.
+     * @return Возвращает пользователю JSON содержащий сообщение с невалидным полем и сообщением.
+     */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
     public ResponseEntity<Object> handleSQLIntegrityConstraintViolationException(SQLIntegrityConstraintViolationException ex) {
@@ -48,6 +69,12 @@ public class RestExceptionController {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Метод обработки не валидных значений при update данных.
+     *
+     * @param ex объект класса ConstraintViolationException.
+     * @return Возвращает пользователю JSON содержащий сообщение с невалидным полем и сообщением.
+     */
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException ex) {

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 /**
  * Реализация сервиса пользователей.
- *
+ * <p>
  * Этот класс предоставляет методы для сохранения, получения и удаления пользователей.
  */
 @Service
@@ -52,6 +52,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Получает пользователя по email.
+     *
      * @param email email пользователя.
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
@@ -62,6 +63,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Получает пользователя по номеру телефона.
+     *
      * @param phone номер тел. пользователя.
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
@@ -90,10 +92,23 @@ public class UserServiceImpl implements UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    /**
+     * Проверка существования пользователя в базе по email.
+     *
+     * @param email email пользователя.
+     * @return true если пользователь найден.
+     */
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
+    /**
+     * Проверка существования пользователя в базе по номеру телефона.
+     *
+     * @param phone тел. пользователя.
+     * @return true если пользователь найден.
+     */
     public boolean existsByPhoneNumber(String phone) {
         return userRepository.existsByPhoneNumber(phone);
     }
