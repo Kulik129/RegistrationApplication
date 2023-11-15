@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Класс конфигурации для обработки междоменных запросов (CORS).
+ */
 @Configuration
 public class CorsConfig {
 
@@ -18,6 +21,11 @@ public class CorsConfig {
     @Value("${allowed.headers}")
     private String allowedHeaders;
 
+    /**
+     * Конфигурирует CORS для приложения.
+     *
+     * @return Экземпляр WebMvcConfigurer с настройками CORS.
+     */
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {

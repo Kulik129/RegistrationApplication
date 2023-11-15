@@ -7,6 +7,7 @@ import ru.kulik.registration.repository.UserRepository;
 import ru.kulik.registration.service.UserService;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Реализация сервиса пользователей.
@@ -19,7 +20,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     /**
-     * Конструктор класса, инъектирующий зависимость UserRepository.
+     * Конструктор класса, инжектирующий зависимость UserRepository.
      *
      * @param userRepository Репозиторий пользователей, необходимый для выполнения операций с пользователями.
      */
@@ -42,12 +43,35 @@ public class UserServiceImpl implements UserService {
      * Получает пользователя по идентификатору.
      *
      * @param id Идентификатор пользователя, которого нужно получить.
-     * @return Объект пользователя, если найден, иначе null.
+     * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
     @Override
-    public User getUser(long id) {
-        return userRepository.findById(id).orElse(null);
+    public Optional<User> getUserByID(long id) {
+        return userRepository.findById(id);
     }
+
+    /**
+     * Получает пользователя по email.
+     *
+     * @param email email пользователя.
+     * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
+     */
+    @Override
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    /**
+     * Получает пользователя по номеру телефона.
+     *
+     * @param phone номер тел. пользователя.
+     * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
+     */
+    @Override
+    public Optional<User> getUserByPhone(String phone) {
+        return userRepository.findByPhoneNumber(phone);
+    }
+
 
     /**
      * Удаляет пользователя по идентификатору.
@@ -67,5 +91,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    /**
+     * Проверка существования пользователя в базе по email.
+     *
+     * @param email email пользователя.
+     * @return true если пользователь найден.
+     */
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * Проверка существования пользователя в базе по номеру телефона.
+     *
+     * @param phone тел. пользователя.
+     * @return true если пользователь найден.
+     */
+    public boolean existsByPhoneNumber(String phone) {
+        return userRepository.existsByPhoneNumber(phone);
     }
 }
