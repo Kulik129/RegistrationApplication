@@ -38,23 +38,13 @@ public class UserController {
     /**
      * Добавляет нового пользователя.
      *
-     * @param name     Имя пользователя.
-     * @param password Пароль пользователя.
      */
     @PostMapping("/add")
     public ResponseEntity<Void> addUser(
-            @Valid User users,
-            @RequestParam String name,
-            @RequestParam String surname,
-            @RequestParam String dateOfBirth,
-            @RequestParam String email,
-            @RequestParam String phoneNumber,
-            @RequestParam String password,
+            @Valid @RequestBody User user,
             BindingResult bindingResult
     ) {
-        userValidator.validate(users, bindingResult);
-
-        User user = new User(name, surname, dateOfBirth, email, phoneNumber, password);
+        userValidator.validate(user, bindingResult);
         userService.save(user);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -75,8 +65,11 @@ public class UserController {
     @PutMapping("/update-user-info/{id}")
     public ResponseEntity<User> updateUser(
             @PathVariable long id,
-            @RequestBody User updatedUser
+            @RequestBody User updatedUser,
+            BindingResult bindingResult
     ) {
+        userValidator.validate(updatedUser, bindingResult);
+
         Optional<User> user = userService.getUserByID(id);
         if (user.isPresent()) {
             User userUpdate = user.get();
