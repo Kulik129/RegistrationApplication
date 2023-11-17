@@ -1,5 +1,6 @@
 package ru.kulik.registration.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -29,18 +30,21 @@ public class User {
      */
     @NotBlank(message = "Требуется имя.")
     @Size(min = 3, max = 50, message = "Имя должно быть от 3 до 50 символов.")
-    private String name;
+    @JsonProperty("first_name")
+    private String firstName;
     /**
      * Фамилия пользователя.
      */
     @NotBlank(message = "Требуется фамилия.")
     @Size(min = 3, max = 50, message = "Фамилия должна быть от 3 до 50 символов.")
-    private String surname;
+    @JsonProperty("last_name")
+    private String lastName;
     /**
      * Дата рождения пользователя.
      */
     @NotBlank(message = "Требуется дата рождения.")
     @Pattern(regexp = "^(0[1-9]|[12][0-9]|3[01])\\.(0[1-9]|1[0-2])\\.\\d{4}$", message = "Дата рождения должна быть в формате ДД.ММ.ГГГГ.")
+    @JsonProperty("date_of_birth")
     private String dateOfBirth;
     /**
      * email пользователя
@@ -55,6 +59,7 @@ public class User {
     @NotBlank(message = "Требуется номер телефона")
     @Pattern(regexp = "^89\\d{9,11}$", message = "Телефон должен быть в формате 89********* и содержать 11 цифр.")
     @Column(unique = true)
+    @JsonProperty("phone_number")
     private String phoneNumber;
 
     /**
@@ -68,24 +73,21 @@ public class User {
      * Дата и время регистрации пользователя в формате "YYYY-MM-DDTHH:MM:SSS+SS:SS".
      */
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonProperty("registration_date")
     private Date registrationDate;
 
     /**
-     * Конструктор для создания пользователя с указанным именем, фамилией, датой рождения, email и паролем. Дата и время регистрации
-     * будут установлены автоматически при создании.
-     *
-     * @param name        Имя пользователя.
-     * @param surname     Фамилия пользователя.
-     * @param dateOfBirth Дата рождения пользователя.
-     * @param email       email пользователя.
-     * @param password    Пароль пользователя.
+     * Дата и время окончания подписки в формате "YYYY-MM-DDTHH:MM:SSS+SS:SS".
      */
-    public User(String name, String surname, String dateOfBirth, String email, String phoneNumber, String password) {
-        this.name = name;
-        this.surname = surname;
-        this.dateOfBirth = dateOfBirth;
-        this.email = email;
-        this.password = password;
-        this.phoneNumber = phoneNumber;
-    }
+    @Temporal(TemporalType.TIMESTAMP)
+    @JsonProperty("subscription_end_date")
+    private Date subscriptionEndDate;
+
+    /**
+     * Роль пользователя.
+     */
+    private UserRole role;
+
+    @Column(columnDefinition = "BIT")
+    private boolean active;
 }
