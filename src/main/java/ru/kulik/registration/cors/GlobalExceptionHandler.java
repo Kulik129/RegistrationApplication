@@ -1,8 +1,7 @@
-package ru.kulik.registration.controllers;
+package ru.kulik.registration.cors;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,8 +9,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.kulik.registration.exception.AuthException;
-import ru.kulik.registration.util.ApiValidationError;
+import ru.kulik.registration.exception.InvalidPasswordException;
+import ru.kulik.registration.DTO.ApiValidationError;
+import ru.kulik.registration.exception.UserNotFoundException;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.List;
  */
 @ControllerAdvice
 @RestController
-public class RestExceptionController {
+public class GlobalExceptionHandler {
     /**
      * Поле в БД с email пользователей.
      */
@@ -33,10 +33,10 @@ public class RestExceptionController {
     private final String fieldPhoneNumber = "user.UK_4bgmpi98dylab6qdvf9xyaxu4";
 
     /**
-     * Метод обработки не валидных значений для БД.
+     * Глобальный обработчик исключений для случаев, когда возникают ошибки валидации аргументов метода.
      *
-     * @param ex объект класса MethodArgumentNotValidException.
-     * @return Возвращает пользователю JSON содержащий сообщение с невалидным полем и сообщением.
+     * @param ex Исключение MethodArgumentNotValidException.
+     * @return ResponseEntity с сообщением об ошибке и статусом BAD_REQUEST.
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -51,10 +51,10 @@ public class RestExceptionController {
     }
 
     /**
-     * Метод обработки не валидных значений с email и phoneNumber для БД.
+     * Глобальный обработчик исключений для случаев, когда возникает ошибка нарушения уникальности в базе данных.
      *
-     * @param ex объект класса SQLIntegrityConstraintViolationException.
-     * @return Возвращает пользователю JSON содержащий сообщение с невалидным полем и сообщением.
+     * @param ex Исключение SQLIntegrityConstraintViolationException.
+     * @return ResponseEntity с сообщением об ошибке и статусом BAD_REQUEST.
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
@@ -71,10 +71,10 @@ public class RestExceptionController {
     }
 
     /**
-     * Метод обработки не валидных значений при update данных.
+     * Глобальный обработчик исключений для случаев, когда возникают ограничения (ConstraintViolation).
      *
-     * @param ex объект класса ConstraintViolationException.
-     * @return Возвращает пользователю JSON содержащий сообщение с невалидным полем и сообщением.
+     * @param ex Исключение ConstraintViolationException.
+     * @return ResponseEntity с сообщением об ошибке и статусом BAD_REQUEST.
      */
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -90,12 +90,32 @@ public class RestExceptionController {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Глобальный обработчик исключений для случаев, когда пароль недопустим.
+     *
+     * @param ex Исключение InvalidPasswordException.
+     * @return ResponseEntity с сообщением об ошибке и статусом BAD_REQUEST.
+     */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(AuthException.class)
-    public ResponseEntity<Object> invalidPassword(AuthException ex) {
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<Object> invalidPassword(InvalidPasswordException ex) {
         List<ApiValidationError> errors = new ArrayList<>();
         errors.add(new ApiValidationError("password", ex.getMessage()));
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Глобальный обработчик исключений для случаев, когда пользователь не найден.
+     *
+     * @param ex Исключение UserNotFoundException.
+     * @return ResponseEntity с сообщением об ошибке и статусом NOT_FOUND.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Object> userNotFound(UserNotFoundException ex) {
+        List<ApiValidationError> errors = new ArrayList<>();
+        errors.add(new ApiValidationError("ID", ex.getMessage()));
+        return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
     }
 }
 
