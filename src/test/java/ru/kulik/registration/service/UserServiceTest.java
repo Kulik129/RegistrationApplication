@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kulik.registration.model.User;
-import ru.kulik.registration.service.implement.UserServiceImpl;
 
 import java.util.List;
 import java.util.Optional;
