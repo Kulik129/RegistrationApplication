@@ -1,12 +1,11 @@
 package ru.kulik.registration.service;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kulik.registration.model.User;
-import ru.kulik.registration.repository.UserRepository;
 import ru.kulik.registration.service.implement.UserServiceImpl;
 
 import java.util.List;
@@ -24,43 +23,46 @@ class UserServiceTest {
     @Autowired
     private UserServiceImpl userServiceImpl;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Test
     void testSaveUser() {
-        User user = new User("John", "Smith", "23.12.1968", "smith.jo@gmail.com","89255555555", "secret");
+        User user = new User("John", "Smith", "23.12.1968", "smith.jo@gmail.com", "89255555555", "secret");
         userService.save(user);
 
         Optional<User> savedUser = userService.getUserByID(user.getId());
 
         assertNotNull(savedUser);
 
-        assertEquals("John", savedUser.get().getName());
-        assertEquals("Smith", savedUser.get().getSurname());
+        assertEquals("John", savedUser.get().getFirstName());
+        assertEquals("Smith", savedUser.get().getLastName());
         assertEquals("23.12.1968", savedUser.get().getDateOfBirth());
         assertEquals("smith.jo@gmail.com", savedUser.get().getEmail());
         assertEquals("89255555555", savedUser.get().getPhoneNumber());
-        assertEquals("secret", savedUser.get().getPassword());
+        assertTrue(passwordEncoder.matches("secret", user.getPassword()), savedUser.get().getPassword());
     }
 
     @Test
     void testGetUser() {
-        User user = new User("Alice", "Festa", "12.12.2000", "fest@gmail.com","89858888888", "mypassword");
+        User user = new User("Alice", "Festa", "12.12.2000", "fest@gmail.com", "89858888888", "mypassword");
         userService.save(user);
 
         Optional<User> savedUser = userService.getUserByID(user.getId());
 
         assertNotNull(savedUser);
 
-        assertEquals("Alice", savedUser.get().getName());
-        assertEquals("Festa", savedUser.get().getSurname());
+        assertEquals("Alice", savedUser.get().getFirstName());
+        assertEquals("Festa", savedUser.get().getLastName());
         assertEquals("12.12.2000", savedUser.get().getDateOfBirth());
         assertEquals("fest@gmail.com", savedUser.get().getEmail());
         assertEquals("89858888888", savedUser.get().getPhoneNumber());
-        assertEquals("mypassword", savedUser.get().getPassword());
+        assertTrue(passwordEncoder.matches("mypassword", user.getPassword()), savedUser.get().getPassword());
     }
 
     @Test
     void testDeleteUser() {
-        User user = new User("Bob", "Marlie", "18.11.1967", "marlie@gmai.com","89681111111", "123456");
+        User user = new User("Bob", "Marlie", "18.11.1967", "marlie@gmai.com", "89681111111", "123456");
         userService.save(user);
 
         Optional<User> savedUser = userService.getUserByID(user.getId());
@@ -88,27 +90,28 @@ class UserServiceTest {
 
     @Test
     void testGetByEmail() {
-        User user = new User("Polli", "Shelby", "28.10.1967", "poll@gmai.com","89681111111", "123456");
+        User user = new User("Polli", "Shelby", "28.10.1967", "poll@gmai.com", "89681111111", "123456");
         userService.save(user);
 
         Optional<User> savedUser = userService.getUserByEmail(user.getEmail());
 
         assertEquals("poll@gmai.com", savedUser.get().getEmail());
     }
+
     @Test
-    void testGetUserByPhone(){
-        User user = new User("Grey", "Shelby", "18.10.1967", "grey@gmai.com","89685678945", "123456");
+    void testGetUserByPhone() {
+        User user = new User("Grey", "Shelby", "18.10.1967", "grey@gmai.com", "89685678945", "123456");
 
         userService.save(user);
 
         Optional<User> savedUser = userService.getUserByPhone(user.getPhoneNumber());
 
-        assertEquals("89685678945",savedUser.get().getPhoneNumber());
+        assertEquals("89685678945", savedUser.get().getPhoneNumber());
     }
 
     @Test
-    void testExistsByEmail(){
-        User user = new User("Ada", "Shelby", "12.03.1977", "ada@gmai.com","89689874534", "123456");
+    void testExistsByEmail() {
+        User user = new User("Ada", "Shelby", "12.03.1977", "ada@gmai.com", "89689874534", "123456");
 
         userService.save(user);
         boolean savedUser = userServiceImpl.existsByEmail(user.getEmail());
@@ -118,7 +121,7 @@ class UserServiceTest {
 
     @Test
     void testExistsByPhoneNumber() {
-        User user = new User("Ada", "Shelby", "12.03.1977", "ada@gmai.com","89689874534", "123456");
+        User user = new User("Ada", "Shelby", "12.03.1977", "ada@gmai.com", "89689874534", "123456");
 
         userService.save(user);
         boolean savedUser = userServiceImpl.existsByPhoneNumber(user.getPhoneNumber());
