@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.kulik.registration.exception.AuthException;
 import ru.kulik.registration.util.ApiValidationError;
 
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -86,6 +87,14 @@ public class RestExceptionController {
             errors.add(new ApiValidationError(field, message));
         }
 
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<Object> invalidPassword(AuthException ex) {
+        List<ApiValidationError> errors = new ArrayList<>();
+        errors.add(new ApiValidationError("password", ex.getMessage()));
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }

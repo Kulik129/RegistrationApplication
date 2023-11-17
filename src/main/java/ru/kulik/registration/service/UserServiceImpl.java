@@ -1,8 +1,11 @@
 package ru.kulik.registration.service.implement;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
+import ru.kulik.registration.exception.AuthException;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.repository.UserRepository;
 import ru.kulik.registration.service.UserService;
@@ -40,8 +43,12 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        if (user.getPassword().length() > 5){
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+        } else {
+            throw new AuthException("Длинна пароля меньше 6 символов.","Invalid password");
+        }
     }
 
     /**
