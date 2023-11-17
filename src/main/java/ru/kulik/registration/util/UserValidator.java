@@ -1,12 +1,11 @@
 package ru.kulik.registration.util;
 
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import ru.kulik.registration.DTO.UserDTO;
 import ru.kulik.registration.model.User;
-import ru.kulik.registration.service.UserService;
-import ru.kulik.registration.service.implement.UserServiceImpl;
+import ru.kulik.registration.service.UserServiceImpl;
 
 /**
  * Класс валидатора для объектов User, проверяющий уникальность email и номера телефона.
@@ -26,7 +25,7 @@ public class UserValidator implements Validator {
 
     @Override
     public boolean supports(Class<?> clazz) {
-        return User.class.equals(clazz);
+        return UserDTO.class.equals(clazz);
     }
 
     @Override

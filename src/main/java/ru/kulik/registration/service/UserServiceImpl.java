@@ -1,14 +1,12 @@
-package ru.kulik.registration.service.implement;
+package ru.kulik.registration.service;
 
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.BindingResult;
-import ru.kulik.registration.exception.AuthException;
+import ru.kulik.registration.exception.InvalidPasswordException;
+import ru.kulik.registration.exception.UserNotFoundException;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.repository.UserRepository;
-import ru.kulik.registration.service.UserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,11 +41,11 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public void save(User user) {
-        if (user.getPassword().length() > 5){
+        if (user.getPassword().length() > 5) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
         } else {
-            throw new AuthException("Длинна пароля меньше 6 символов.","Invalid password");
+            throw new InvalidPasswordException("Длинна пароля меньше 6 символов.", "Invalid password");
         }
     }
 
@@ -59,7 +57,12 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Optional<User> getUserByID(long id) {
-        return userRepository.findById(id);
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            return user;
+        } else {
+            throw new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id");
+        }
     }
 
     /**
@@ -70,7 +73,12 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            return user;
+        } else {
+            throw new UserNotFoundException("Пользователь с email " + email + " не найден", "Not found email");
+        }
     }
 
     /**
@@ -81,7 +89,12 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Optional<User> getUserByPhone(String phone) {
-        return userRepository.findByPhoneNumber(phone);
+        Optional<User> user = userRepository.findByPhoneNumber(phone);
+        if (user.isPresent()) {
+            return user;
+        } else {
+            throw new UserNotFoundException("Пользователь с номером " + phone + " не найден", "Not found phone");
+        }
     }
 
 

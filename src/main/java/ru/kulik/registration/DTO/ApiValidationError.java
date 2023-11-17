@@ -1,4 +1,4 @@
-package ru.kulik.registration.util;
+package ru.kulik.registration.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

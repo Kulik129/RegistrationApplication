@@ -12,9 +12,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Конфигурация Spring Security.
+ */
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
+    /**
+     * Конфигурация цепочки фильтров безопасности.
+     *
+     * @param http Объект конфигурации HTTP Security.
+     * @return Цепочка фильтров безопасности.
+     * @throws Exception В случае ошибки конфигурации.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -31,6 +41,11 @@ public class WebSecurityConfig {
 
         return http.build();
     }
+    /**
+     * Создание сервиса пользователей.
+     *
+     * @return Сервис пользователей.
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         UserDetails user =
@@ -42,6 +57,11 @@ public class WebSecurityConfig {
 
         return new InMemoryUserDetailsManager(user);
     }
+    /**
+     * Создание кодировщика паролей.
+     *
+     * @return Кодировщик паролей.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
