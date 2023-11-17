@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -22,17 +23,20 @@ import java.util.*;
 public class UserController {
     private final UserService userService;
     private final UserValidator userValidator;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Конструктор контроллера.
      *
-     * @param userService   Сервис для управления пользователями.
+     * @param userService     Сервис для управления пользователями.
      * @param userValidator
+     * @param passwordEncoder
      */
     @Autowired
-    public UserController(UserService userService, UserValidator userValidator) {
+    public UserController(UserService userService, UserValidator userValidator, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.userValidator = userValidator;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -73,8 +77,8 @@ public class UserController {
         Optional<User> user = userService.getUserByID(id);
         if (user.isPresent()) {
             User userUpdate = user.get();
-            userUpdate.setName(updatedUser.getName());
-            userUpdate.setSurname(updatedUser.getSurname());
+            userUpdate.setFirstName(updatedUser.getFirstName());
+            userUpdate.setLastName(updatedUser.getLastName());
             userUpdate.setDateOfBirth(updatedUser.getDateOfBirth());
             userUpdate.setPhoneNumber(updatedUser.getPhoneNumber());
 
@@ -168,5 +172,25 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @PostMapping("/authenticate")
+    public ResponseEntity<User> authenticate(
+            @RequestParam String email,
+            @RequestParam String password
+    ) {
+        Optional<User> userOptional = userService.getUserByEmail(email);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+     }
 }
 
