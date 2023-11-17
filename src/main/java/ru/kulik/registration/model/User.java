@@ -90,4 +90,13 @@ public class User {
 
     @Column(columnDefinition = "BIT")
     private boolean active;
+
+    public User(String firstName, String lastName, String dateOfBirth, String email, String phone, String password) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dateOfBirth = dateOfBirth;
+        this.email = email;
+        this.phoneNumber = phone;
+        this.password = password;
+    }
 }
