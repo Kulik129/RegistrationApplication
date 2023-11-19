@@ -12,6 +12,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.kulik.registration.DTO.UpdatePasswordDto;
 import ru.kulik.registration.DTO.UpdateUserInfoDto;
 import ru.kulik.registration.DTO.UserDto;
+import ru.kulik.registration.DTO.UserResponseDto;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.model.UserRole;
 import ru.kulik.registration.service.UserService;
@@ -21,6 +22,7 @@ import ru.kulik.registration.util.ValidationUtil;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Контроллер для управления пользователями.
@@ -92,7 +94,7 @@ public class UserController {
 
             userService.save(userUpdate);
 
-            return new ResponseEntity<>(userUpdate, HttpStatus.OK);
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(userUpdate), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -106,11 +108,11 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
     @GetMapping("{id}")
-    public ResponseEntity<UserDto> getUserById(@PathVariable long id) {
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable long id) {
         Optional<UserDto> user = userService.getUserByID(id);
 
         if (user.isPresent()) {
-            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -123,11 +125,11 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
     @GetMapping("/by-email")
-    public ResponseEntity<UserDto> getUserByEmail(@RequestParam String email) {
+    public ResponseEntity<UserResponseDto> getUserByEmail(@RequestParam String email) {
         Optional<UserDto> user = userService.getUserByEmail(email);
 
         if (user.isPresent()) {
-            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -140,11 +142,11 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
     @GetMapping("/by-phone-number")
-    public ResponseEntity<UserDto> getUserByPhoneNumber(@RequestParam String phone) {
+    public ResponseEntity<UserResponseDto> getUserByPhoneNumber(@RequestParam String phone) {
         Optional<UserDto> user = userService.getUserByPhone(phone);
 
         if (user.isPresent()) {
-            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -171,11 +173,16 @@ public class UserController {
      * @return ResponseEntity с пользователями и статусом ОК, или NOT_FOUND, если пользователи не найдены.
      */
     @GetMapping("/all")
-    public ResponseEntity<List<UserDto>> getAllUsers() {
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
         List<UserDto> users = userService.getAllUsers();
 
         if (!users.isEmpty()) {
-            return new ResponseEntity<>(users, HttpStatus.OK);
+
+            List<UserResponseDto> responseDtos = users.stream()
+                    .map(UserResponseDto::fromUserDto)
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(responseDtos, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -188,10 +195,10 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом OK, или UNAUTHORIZED, если аутентификация не удалась.
      */
     @PostMapping("/authenticate")
-    public ResponseEntity<UserDto> authenticate(@RequestBody UserDto userAuthenticate) {
+    public ResponseEntity<UserResponseDto> authenticate(@RequestBody UserDto userAuthenticate) {
         Optional<UserDto> user = userService.getUserByPhone(userAuthenticate.getPhoneNumber());
         if (passwordEncoder.matches(userAuthenticate.getPassword(), user.get().getPassword())) {
-            return ResponseEntity.ok(user.get());
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -213,7 +220,7 @@ public class UserController {
         if (passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
             user.get().setPassword(passwordEncoder.encode(request.getPasswordNew()));
             userService.save(user.get());
-            return ResponseEntity.ok(user.get());
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         } else {
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -228,12 +235,12 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом OK.
      */
     @PutMapping("/subscription/{id}")
-    public ResponseEntity<UserDto> updateSubscription(@PathVariable long id, @RequestParam LocalDateTime dateTime) {
+    public ResponseEntity<UserResponseDto> updateSubscription(@PathVariable long id, @RequestParam LocalDateTime dateTime) {
         Optional<UserDto> user = userService.getUserByID(id);
         if (user.isPresent()) {
             user.get().setSubscriptionEndDate(dateTime);
             userService.save(user.get());
-            return ResponseEntity.ok(user.get());
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
@@ -245,7 +252,7 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом OK в случае успеха, иначе BAD_REQUEST.
      */
     @PutMapping("/role/{id}")
-    public ResponseEntity<UserDto> updateRole(@PathVariable long id, @RequestParam boolean param) {
+    public ResponseEntity<UserResponseDto> updateRole(@PathVariable long id, @RequestParam boolean param) {
         Optional<UserDto> user = userService.getUserByID(id);
         if (user.isPresent()) {
             if (param) {
@@ -255,7 +262,7 @@ public class UserController {
                 user.get().setRole(UserRole.USER);
                 userService.save(user.get());
             }
-            return ResponseEntity.ok(user.get());
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
@@ -266,7 +273,7 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом OK в случае успеха, иначе BAD_REQUEST.
      */
     @PutMapping("/active/{id}")
-    public ResponseEntity<UserDto> updateActive(@PathVariable long id, @RequestParam boolean param) {
+    public ResponseEntity<UserResponseDto> updateActive(@PathVariable long id, @RequestParam boolean param) {
         Optional<UserDto> user = userService.getUserByID(id);
         if (user.isPresent()) {
             if (param) {
@@ -276,7 +283,7 @@ public class UserController {
                 user.get().setActive(false);
                 userService.save(user.get());
             }
-            return ResponseEntity.ok(user.get());
+            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
