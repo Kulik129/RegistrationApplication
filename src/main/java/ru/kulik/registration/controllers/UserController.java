@@ -1,6 +1,7 @@
 package ru.kulik.registration.controllers;
 
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,12 +9,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ru.kulik.registration.DTO.UserDTO;
+import ru.kulik.registration.DTO.UpdatePasswordDto;
+import ru.kulik.registration.DTO.UpdateUserInfoDto;
+import ru.kulik.registration.DTO.UserDto;
 import ru.kulik.registration.model.User;
+import ru.kulik.registration.model.UserRole;
 import ru.kulik.registration.service.UserService;
 import ru.kulik.registration.util.UserValidator;
+import ru.kulik.registration.util.ValidationUtil;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -25,6 +31,7 @@ public class UserController {
     private final UserService userService;
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     /**
      * Конструктор контроллера.
@@ -32,22 +39,29 @@ public class UserController {
      * @param userService     Сервис для управления пользователями.
      * @param userValidator
      * @param passwordEncoder
+     * @param modelMapper
      */
     @Autowired
-    public UserController(UserService userService, UserValidator userValidator, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, UserValidator userValidator, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
         this.userService = userService;
         this.userValidator = userValidator;
         this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
     }
 
     /**
      * Добавляет нового пользователя.
      */
     @PostMapping("/add")
-    public ResponseEntity<String> addUser(@Valid @RequestBody User user, BindingResult bindingResult) {
-        userValidator.validate(user, bindingResult);
-        userService.save(user);
+    public ResponseEntity<?> addUser(@RequestBody @Valid UserDto user, BindingResult bindingResult) {
+        User userMap = modelMapper.map(user, User.class);
+        userValidator.validate(userMap, bindingResult);
 
+        if (bindingResult.hasErrors()) {
+            return ValidationUtil.handleValidationErrors(bindingResult);
+        }
+
+        userService.createUser(user);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(user.getId())
@@ -59,21 +73,22 @@ public class UserController {
     /**
      * Обновляет данные о пользователе. Имя, фамилию, дату рождения, номер телефона.
      *
-     * @param id          id пользователя.
-     * @param updatedUser json с данными.
+     * @param id      id пользователя.
+     * @param request json с данными.
      * @return ResponseEntity с обновленным пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
     @PutMapping("/update-user-info/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody User updatedUser, BindingResult bindingResult) {
-        userValidator.validate(updatedUser, bindingResult);
+    public ResponseEntity<?> updateUser(@PathVariable long id, @RequestBody @Valid UpdateUserInfoDto request, BindingResult bindingResult) {
 
-        Optional<User> user = userService.getUserByID(id);
+        if (bindingResult.hasErrors()) {
+            return ValidationUtil.handleValidationErrors(bindingResult);
+        }
+        Optional<UserDto> user = userService.getUserByID(id);
         if (user.isPresent()) {
-            User userUpdate = user.get();
-            userUpdate.setFirstName(updatedUser.getFirstName());
-            userUpdate.setLastName(updatedUser.getLastName());
-            userUpdate.setDateOfBirth(updatedUser.getDateOfBirth());
-            userUpdate.setPhoneNumber(updatedUser.getPhoneNumber());
+            UserDto userUpdate = user.get();
+            userUpdate.setFirstName(request.getFirstName());
+            userUpdate.setLastName(request.getLastName());
+            userUpdate.setDateOfBirth(request.getDateOfBirth());
 
             userService.save(userUpdate);
 
@@ -83,6 +98,7 @@ public class UserController {
         }
     }
 
+
     /**
      * Получает пользователя по идентификатору.
      *
@@ -90,8 +106,8 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
     @GetMapping("{id}")
-    public ResponseEntity<User> getUserById(@PathVariable long id) {
-        Optional<User> user = userService.getUserByID(id);
+    public ResponseEntity<UserDto> getUserById(@PathVariable long id) {
+        Optional<UserDto> user = userService.getUserByID(id);
 
         if (user.isPresent()) {
             return new ResponseEntity<>(user.get(), HttpStatus.OK);
@@ -103,12 +119,12 @@ public class UserController {
     /**
      * Получает пользователя по email.
      *
-     * @param request email пользователя.
+     * @param email email пользователя.
      * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
     @GetMapping("/by-email")
-    public ResponseEntity<User> getUserByEmail(@RequestBody UserDTO request) {
-        Optional<User> user = userService.getUserByEmail(request.getEmail());
+    public ResponseEntity<UserDto> getUserByEmail(@RequestParam String email) {
+        Optional<UserDto> user = userService.getUserByEmail(email);
 
         if (user.isPresent()) {
             return new ResponseEntity<>(user.get(), HttpStatus.OK);
@@ -120,12 +136,12 @@ public class UserController {
     /**
      * Получает пользователя по номеру телефона.
      *
-     * @param request номер тел. пользователя.
+     * @param phone номер тел. пользователя.
      * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
      */
     @GetMapping("/by-phone-number")
-    public ResponseEntity<User> getUserByPhoneNumber(@RequestBody UserDTO request) {
-        Optional<User> user = userService.getUserByPhone(request.getPhoneNumber());
+    public ResponseEntity<UserDto> getUserByPhoneNumber(@RequestParam String phone) {
+        Optional<UserDto> user = userService.getUserByPhone(phone);
 
         if (user.isPresent()) {
             return new ResponseEntity<>(user.get(), HttpStatus.OK);
@@ -155,8 +171,8 @@ public class UserController {
      * @return ResponseEntity с пользователями и статусом ОК, или NOT_FOUND, если пользователи не найдены.
      */
     @GetMapping("/all")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<UserDto> users = userService.getAllUsers();
 
         if (!users.isEmpty()) {
             return new ResponseEntity<>(users, HttpStatus.OK);
@@ -172,9 +188,8 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом OK, или UNAUTHORIZED, если аутентификация не удалась.
      */
     @PostMapping("/authenticate")
-    public ResponseEntity<User> authenticate(@RequestBody UserDTO userAuthenticate) {
-        Optional<User> user = userService.getUserByPhone(userAuthenticate.getPhoneNumber());
-
+    public ResponseEntity<UserDto> authenticate(@RequestBody UserDto userAuthenticate) {
+        Optional<UserDto> user = userService.getUserByPhone(userAuthenticate.getPhoneNumber());
         if (passwordEncoder.matches(userAuthenticate.getPassword(), user.get().getPassword())) {
             return ResponseEntity.ok(user.get());
         } else {
@@ -189,52 +204,81 @@ public class UserController {
      * @param request DTO с данными для обновления пароля (старый пароль и новый пароль).
      * @return ResponseEntity с пользователем и статусом OK, или UNAUTHORIZED, если старый пароль не совпадает.
      */
-    @PutMapping("/update-password/{id}")
-    public ResponseEntity<User> updatePassword(@PathVariable long id, @RequestBody UserDTO request) {
-        Optional<User> user = userService.getUserByID(id);
-
+    @PutMapping("/password/{id}")
+    public ResponseEntity<?> updatePassword(@PathVariable long id, @RequestBody @Valid UpdatePasswordDto request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ValidationUtil.handleValidationErrors(bindingResult);
+        }
+        Optional<UserDto> user = userService.getUserByID(id);
         if (passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
-            user.get().setPassword(request.getPasswordNew());
+            user.get().setPassword(passwordEncoder.encode(request.getPasswordNew()));
             userService.save(user.get());
-
             return ResponseEntity.ok(user.get());
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
     /**
      * Обновление даты окончания подписки пользователя.
      *
-     * @param id   Идентификатор пользователя.
-     * @param user DTO с данными для обновления даты окончания подписки.
+     * @param id       Идентификатор пользователя.
+     * @param dateTime дата для обновления окончания подписки.
      * @return ResponseEntity с пользователем и статусом OK.
      */
-    @PutMapping("/update-subscription/{id}")
-    public ResponseEntity<User> updateSubscription(@PathVariable long id, @RequestBody UserDTO user) {
-        Optional<User> userUpdate = userService.getUserByID(id);
-
-        userUpdate.get().setSubscriptionEndDate(user.getSubscriptionEndDate());
-        userService.save(userUpdate.get());
-
-        return ResponseEntity.ok(userUpdate.get());
+    @PutMapping("/subscription/{id}")
+    public ResponseEntity<UserDto> updateSubscription(@PathVariable long id, @RequestParam LocalDateTime dateTime) {
+        Optional<UserDto> user = userService.getUserByID(id);
+        if (user.isPresent()) {
+            user.get().setSubscriptionEndDate(dateTime);
+            userService.save(user.get());
+            return ResponseEntity.ok(user.get());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
     /**
-     * Обновление роли пользователя.
+     * Обновление роли пользователя на admin.
      *
      * @param id   Идентификатор пользователя.
-     * @param user DTO с данными для обновления роли.
-     * @return ResponseEntity с пользователем и статусом OK.
+     * @return ResponseEntity с пользователем и статусом OK в случае успеха, иначе BAD_REQUEST.
      */
-    @PutMapping("/update-role/{id}")
-    public ResponseEntity<User> updateRole(@PathVariable long id, @RequestBody UserDTO user) {
-        Optional<User> userUpdate = userService.getUserByID(id);
+    @PutMapping("/role/{id}")
+    public ResponseEntity<UserDto> updateRole(@PathVariable long id, @RequestParam boolean param) {
+        Optional<UserDto> user = userService.getUserByID(id);
+        if (user.isPresent()) {
+            if (param) {
+                user.get().setRole(UserRole.ADMIN);
+                userService.save(user.get());
+            } else {
+                user.get().setRole(UserRole.USER);
+                userService.save(user.get());
+            }
+            return ResponseEntity.ok(user.get());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
 
-        userUpdate.get().setRole(user.getRole());
-        userService.save(userUpdate.get());
-
-        return ResponseEntity.ok(userUpdate.get());
+    /**
+     * Блокировка пользователя.
+     * @param id id пользователя.
+     * @return ResponseEntity с пользователем и статусом OK в случае успеха, иначе BAD_REQUEST.
+     */
+    @PutMapping("/active/{id}")
+    public ResponseEntity<UserDto> updateActive(@PathVariable long id, @RequestParam boolean param) {
+        Optional<UserDto> user = userService.getUserByID(id);
+        if (user.isPresent()) {
+            if (param) {
+                user.get().setActive(true);
+                userService.save(user.get());
+            } else {
+                user.get().setActive(false);
+                userService.save(user.get());
+            }
+            return ResponseEntity.ok(user.get());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }
 
