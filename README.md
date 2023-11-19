@@ -1,6 +1,7 @@
-# Проект "Управление пользователями"
+# RESTful API для управления пользователями
 
-Этот проект представляет собой простой микросервис для управления пользователями. Он включает в себя RESTful API для добавления, получения и удаления пользователей.
+Этот проект представляет собой простой микросервис для управления пользователями. Он включает в себя RESTful API для
+добавления, получения и удаления пользователей.
 
 ## Описание
 
@@ -31,15 +32,17 @@
 - `UserRepository`: Интерфейс репозитория для сущностей User, расширяющий JpaRepository.
 - `WebSecurityConfig`: Класс безопасности приложения, шифрование паролей и настройка доступа к ссылкам.
 - `UserService`: Интерфейс для управления пользователями.
-- `UserServiceImpl`: Реализация интерфейса UserService, включая методы для сохранения, получения и удаления пользователей.
+- `UserServiceImpl`: Реализация интерфейса UserService, включая методы для сохранения, получения и удаления
+  пользователей.
 - `UserValidator`: Класс валидатора для объектов User, проверяющий уникальность email и номера телефона.
 - `application.properties`: Файл конфигурации для настройки приложения.
 
 ---
 
 ## Установка и запуск
-**Примечание:** В `application.properties`, `allowed.origins=` поставьте хост на фактический адрес вашего приложения с которого будут отправляться запросы к этому API, например: `allowed.origins=http://localhost:8090`.
 
+**Примечание:** В `application.properties`, `allowed.origins=` поставьте хост на фактический адрес вашего приложения с
+которого будут отправляться запросы к этому API, например: `allowed.origins=http://localhost:8090`.
 
 1. Клонируйте репозиторий:
 
@@ -87,190 +90,234 @@
 
 ---
 
-## Использование API
+# _Ниже приведены примеры запросов и ожидаемых ответов для каждого эндпоинта._
 
-### Добавление пользователя
+## 1. Добавление нового пользователя
 
+### Запрос:
 
-Чтобы добавить нового пользователя, выполните POST-запрос на `/api/v1/users/add`. Передайте JSON-тело с данными:
-
-- `email` (Email пользователя)
-- `password` (Пароль пользователя)
-- `role` (Роль пользователя. USER или ADMIN) 
-- `active` (Активность пользователя)
-- `first_name` (Имя пользователя)
-- `last_name` (Фамилия пользователя)
-- `date_of_birth` (Дата рождения пользователя)
-- `phone_number` (Номер телефона пользователя)
-- `registration_date` (Дата регистрации пользователя)
-- `subscription_end_date` (Дата окончания подписки)
-
-```json
-{
-   "email": "doe@example.ru",
-   "password": "4321",
-   "role": "USER",
-   "active": true,
-   "first_name": "Doe",
-   "last_name": "John",
-   "date_of_birth": "01.01.1990",
-   "phone_number": "89234321232",
-   "registration_date": "2023-11-14T15:30:00",
-   "subscription_end_date": "2023-11-14T15:30:00"
-}
-```
-
----
-
-## Обновление данных пользователя
-
-Чтобы обновить данные пользователя, выполните PUT-запрос на `/api/v1/users/update-user-info/{id}`, где `{id}` - идентификатор пользователя. Передайте JSON-тело с обновленными данными:
-
-```json
-{
-  "first_name": "NewName",
-  "last_name": "NewSurname",
-  "date_of_birth": "29.12.1999",
-  "phone_number": "89111111111"
-}
-```
-
-**Пример запроса:**
 ```http
-PUT http://localhost:8080/api/v1/users/update-user-info/1
+POST /api/v1/users/add
 ```
-
----
-
-## Получение пользователя по идентификатору
-
-Чтобы получить информацию о пользователе по идентификатору, выполните GET-запрос на `/api/v1/users/{id}`, где `{id}` - идентификатор пользователя.
-
-**Пример запроса:**
-```http
-GET http://localhost:8080/api/v1/users/1
-```
-
+_**Content-Type: application/json**_
 ```json
 {
-    "id": 1,
-    "email": "tomas@mail.ru",
-    "password": "$2a$10$HOSOywEa4/JLN8RLXbU7HufBpfMEzhQzUMT7PRw.SygZrVxDRt75m",
-    "role": "USER",
-    "active": true,
-    "first_name": "Tomas",
-    "last_name": "Shelby",
-    "date_of_birth": "15.06.1915",
-    "phone_number": "89111111111",
-    "registration_date": "2023-11-14T15:30:00",
-    "subscription_end_date": "2023-12-14T15:30:00"
+  "first_name": "John",
+  "last_name": "Doe",
+  "date_of_birth": "1990-01-01",
+  "phone_number": "89123456789",
+  "email": "john.doe@example.com",
+  "password": "securePassword"
 }
 ```
 
----
+### Ответ:
 
-## Получение пользователя по email
+```http
+HTTP/1.1 201 Created
+Location: /add/123  # где 123 - идентификатор созданного пользователя
+```
 
-Чтобы получить пользователя по email, выполните GET-запрос на `/api/v1/users/by-email`. Передайте JSON-тело с данными:
+## 2. Обновление данных пользователя
 
-**Пример запроса:**
+### Запрос:
+
+```http
+PUT /api/v1/users/update-user-info/{id}
+```
+**_Content-Type: application/json_**
 ```json
 {
-   "email": "tomas@mail.ru"
+  "first_name": "UpdatedFirstName",
+  "last_name": "UpdatedLastName",
+  "date_of_birth": "1990-01-02"
 }
 ```
 
----
+### Ответ:
 
-## Получение пользователя по номеру телефона
-
-Чтобы получить пользователя по номеру телефона, выполните GET-запрос на `/api/v1/users/by-phone-number` . Передайте JSON-тело с данными:
-
-**Пример запроса:**
-```json
-{
-   "phone_number": "89111111111"
-}
-```
-
----
-
-## Удаление пользователя по идентификатору
-
-Чтобы удалить пользователя по идентификатору, выполните DELETE-запрос на `/api/v1/users/delete/{id}`, где `{id}` - идентификатор пользователя.
-
-**Пример запроса:**
 ```http
-DELETE http://localhost:8080/api/v1/users/delete/1
+HTTP/1.1 200 OK
 ```
-
----
-
-## Получение списка всех пользователей
-
-Чтобы получить список всех пользователей, выполните GET-запрос на `/api/v1/users/all`.
-
-**Пример запроса:**
-```http
-GET http://localhost:8080/api/v1/users/all
-```
-
----
-
-## Аутентификация по номеру телефона
-
-Чтобы получить пользователя выполните POST-запрос на `/api/v1/users/authenticate` Передайте JSON-тело с номером и паролем:
-**Пример запроса:**
-```http
-POST http://localhost:8080/api/v1/users/authenticate
+**_Content-Type: application/json_**
 ```
 ```json
 {
-    "phone_number": "89234321232",
-    "password": "4321"
+  "id": 123,
+  "first_name": "UpdatedFirstName",
+  "last_name": "UpdatedLastName",
+  "date_of_birth": "1990-01-02",
+  "phone_number": "89123456789",
+  "email": "john.doe@example.com",
+  "registration_date": "2023-11-19T14:27:55",
+  "subscription_end_date": "2044-11-23T14:31:11",
+  "role": "USER",
+  "active": true
 }
 ```
 
----
-## Обновление пароля
-Чтобы обновить пароль выполните PUT-запрос на `/update-password/{id}`, где `{id}`- идентификатор пользователя. Передайте JSON-тело с прежним паролем и обновленным:
-**Пример запроса:**
+## 3. Получение пользователя по идентификатору
+
+### Запрос:
+
 ```http
-PUT http://localhost:8080/api/v1/users/update-password/1
+GET /api/v1/users/{id}
 ```
+
+### Ответ:
+
+```http
+HTTP/1.1 200 OK
+```
+**_Content-Type: application/json_**
 ```json
 {
-   "password": "111111",
-   "password_new": "222222"
+  "id": 123,
+  "first_name": "UpdatedFirstName",
+  "last_name": "UpdatedLastName",
+  "date_of_birth": "1990-01-02",
+  "phone_number": "89123456789",
+  "email": "john.doe@example.com",
+  "registration_date": "2023-11-19T14:27:55",
+  "subscription_end_date": "2044-11-23T14:31:11",
+  "role": "USER",
+  "active": true
 }
 ```
 
----
-## Обновить дату подписки
-Чтобы обновить дату подписки выполните PUT-запрос на `/update-subscription/{id}`, где `{id}`- идентификатор пользователя. Передайте JSON-тело с обновленной датой окончания подписки:
-**Пример запроса:**
+## 4. Получение пользователя по email
+
+### Запрос:
+
 ```http
-PUT http://localhost:8080/api/v1/users/update-subscription/1
+GET /api/v1/users/by-email?email=john.doe@example.com
 ```
+
+### Ответ:
+
+```http
+HTTP/1.1 200 OK
+```
+**_Content-Type: application/json_**
 ```json
 {
-   "subscription_end_date": "2024-02-19T15:39:10"
+  "id": 123,
+  "first_name": "UpdatedFirstName",
+  "last_name": "UpdatedLastName",
+  "date_of_birth": "1990-01-02",
+  "phone_number": "89123456789",
+  "email": "john.doe@example.com",
+  "registration_date": "2023-11-19T14:27:55",
+  "subscription_end_date": "2044-11-23T14:31:11",
+  "role": "USER",
+  "active": true
 }
 ```
 
----
+## 5. Удаление пользователя
 
-## Обновить роль пользователя
-По умолчанию роль пользователя null. 
-Чтобы установить пользователя как USER или ADMIN выполните PUT-запрос на `/update-role/{id}`, где `{id}`- идентификатор пользователя. Передайте JSON-тело с обновленной датой окончания подписки:
-**Пример запроса:**
+### Запрос:
+
 ```http
-PUT http://localhost:8080/api/v1/users/update-role/1
+DELETE /api/v1/users/delete/{id}
 ```
+
+### Ответ:
+
+```http
+HTTP/1.1 200 OK
+Content-Type: text/plain
+
+User with id 123 deleted.
+```
+
+## 6. Получение всех пользователей
+
+### Запрос:
+
+```http
+GET /api/v1/users/all
+```
+
+### Ответ:
+
+```http
+HTTP/1.1 200 OK
+```
+**_Content-Type: application/json_**
+```json
+[
+  {
+     "id": 123,
+     "first_name": "UpdatedFirstName",
+     "last_name": "UpdatedLastName",
+     "date_of_birth": "1990-01-02",
+     "phone_number": "89123456789",
+     "email": "john.doe@example.com",
+     "registration_date": "2023-11-19T14:27:55",
+     "subscription_end_date": "2044-11-23T14:31:11",
+     "role": "USER",
+     "active": true
+  },
+  // Другие пользователи...
+]
+```
+
+## 7. Аутентификация пользователя
+
+### Запрос:
+
+```http
+POST /api/v1/users/authenticate
+```
+**_Content-Type: application/json_**
 ```json
 {
-   "role": "USER"
+  "phone_number": "89123456789",
+  "password": "securePassword"
 }
 ```
 
----
+### Ответ:
+
+```http
+HTTP/1.1 200 OK
+```
+**_Content-Type: application/json_**
+```json
+{
+  "id": 123,
+  "first_name": "UpdatedFirstName",
+  "last_name": "UpdatedLastName",
+  "date_of_birth": "1990-01-02",
+  "phone_number": "89123456789",
+  "email": "john.doe@example.com",
+  "registration_date": "2023-11-19T14:27:55",
+  "subscription_end_date": "2044-11-23T14:31:11",
+  "role": "USER",
+  "active": true
+}
+```
+
+## 8. Обновление пароля пользователя
+
+### Запрос:
+
+```http
+PUT /api/v1/users/password/{id}
+```
+**_Content-Type: application/json_**
+```json
+{
+  "password": "securePassword",
+  "password_new": "newSecurePassword"
+}
+```
+
+### Ответ:
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+```
+
