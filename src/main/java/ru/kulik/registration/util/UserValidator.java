@@ -3,7 +3,6 @@ package ru.kulik.registration.util;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import ru.kulik.registration.DTO.UserDTO;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.service.UserServiceImpl;
 
@@ -14,18 +13,13 @@ import ru.kulik.registration.service.UserServiceImpl;
 public class UserValidator implements Validator {
     private final UserServiceImpl userService;
 
-    /**
-     * Конструктор, инжектирующий зависимость UserServiceImpl.
-     *
-     * @param userService Сервис, необходимый для валидации пользователей.
-     */
     public UserValidator(UserServiceImpl userService) {
         this.userService = userService;
     }
 
     @Override
     public boolean supports(Class<?> clazz) {
-        return UserDTO.class.equals(clazz);
+        return User.class.equals(clazz);
     }
 
     @Override
@@ -33,10 +27,10 @@ public class UserValidator implements Validator {
         User user = (User) target;
 
         if (userService.existsByEmail(user.getEmail())) {
-            errors.rejectValue("email", "unique.email", "Этот логин занят.");
+            errors.rejectValue("email", "", "Этот логин занят.");
         }
         if (userService.existsByPhoneNumber(user.getPhoneNumber())) {
-            errors.rejectValue("phoneNumber", "unique.phoneNumber", "Этот номер телефона занят.");
+            errors.rejectValue("phoneNumber", "", "Этот номер телефона занят.");
         }
     }
 }
