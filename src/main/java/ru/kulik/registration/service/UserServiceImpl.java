@@ -1,52 +1,46 @@
 package ru.kulik.registration.service;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.kulik.registration.exception.InvalidPasswordException;
+import ru.kulik.registration.DTO.UserDto;
 import ru.kulik.registration.exception.UserNotFoundException;
 import ru.kulik.registration.model.User;
+import ru.kulik.registration.model.UserRole;
 import ru.kulik.registration.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса пользователей.
- * <p>
- * Этот класс предоставляет методы для сохранения, получения и удаления пользователей.
+ * Класс предоставляет методы для сохранения, получения и удаления пользователей.
  */
 @Service
 public class UserServiceImpl implements UserService {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
-    /**
-     * Конструктор класса, инжектирующий зависимость UserRepository.
-     *
-     * @param userRepository  Репозиторий пользователей, необходимый для выполнения операций с пользователями.
-     * @param passwordEncoder
-     */
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
     }
 
     /**
      * Сохраняет пользователя.
      *
-     * @param user Объект пользователя, который должен быть сохранен.
+     * @param userDto Объект пользователя, который должен быть сохранен.
      */
     @Override
-    public void save(User user) {
-        if (user.getPassword().length() > 5) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            userRepository.save(user);
-        } else {
-            throw new InvalidPasswordException("Длинна пароля меньше 6 символов.", "Invalid password");
-        }
+    public void save(UserDto userDto) {
+        User user = modelMapper.map(userDto, User.class);
+        userRepository.save(user);
     }
 
     /**
@@ -56,13 +50,27 @@ public class UserServiceImpl implements UserService {
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
     @Override
-    public Optional<User> getUserByID(long id) {
+    public Optional<UserDto> getUserByID(long id) {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
-            return user;
+            return user.map(value -> modelMapper.map(value, UserDto.class));
         } else {
             throw new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id");
         }
+    }
+
+    /**
+     * Создает нового пользователя.
+     *
+     * @param user Пользователь для создания.
+     */
+    @Override
+    public void createUser(UserDto user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(UserRole.USER);
+        user.setActive(true);
+        user.setRegistrationDate(LocalDateTime.now());
+        save(user);
     }
 
     /**
@@ -72,10 +80,10 @@ public class UserServiceImpl implements UserService {
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
     @Override
-    public Optional<User> getUserByEmail(String email) {
+    public Optional<UserDto> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent()) {
-            return user;
+            return user.map(value -> modelMapper.map(value, UserDto.class));
         } else {
             throw new UserNotFoundException("Пользователь с email " + email + " не найден", "Not found email");
         }
@@ -88,15 +96,14 @@ public class UserServiceImpl implements UserService {
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
     @Override
-    public Optional<User> getUserByPhone(String phone) {
+    public Optional<UserDto> getUserByPhone(String phone) {
         Optional<User> user = userRepository.findByPhoneNumber(phone);
         if (user.isPresent()) {
-            return user;
+            return user.map(value -> modelMapper.map(value, UserDto.class));
         } else {
             throw new UserNotFoundException("Пользователь с номером " + phone + " не найден", "Not found phone");
         }
     }
-
 
     /**
      * Удаляет пользователя по идентификатору.
@@ -109,13 +116,16 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Находит пользователей.
+     * Находит всех пользователей.
      *
      * @return Список всех пользователей или null если не найдены.
      */
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDto> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> modelMapper.map(user, UserDto.class))
+                .collect(Collectors.toList());
     }
 
     /**

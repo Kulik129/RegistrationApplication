@@ -1,6 +1,6 @@
 package ru.kulik.registration.service;
 
-import ru.kulik.registration.model.User;
+import ru.kulik.registration.DTO.UserDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +14,7 @@ public interface UserService {
      *
      * @param user Пользователь для сохранения.
      */
-    void save(User user);
+    void save(UserDto user);
 
     /**
      * Получает пользователя по идентификатору.
@@ -22,7 +22,13 @@ public interface UserService {
      * @param id Идентификатор пользователя.
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
-    Optional<User> getUserByID(long id);
+    Optional<UserDto> getUserByID(long id);
+
+    /**
+     * Создание нового пользователя.
+     * @param user Пользователь для создания.
+     */
+    void createUser(UserDto user);
 
     /**
      * Получает пользователя по email.
@@ -30,7 +36,7 @@ public interface UserService {
      * @param email email пользователя.
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
-    Optional<User> getUserByEmail(String email);
+    Optional<UserDto> getUserByEmail(String email);
 
     /**
      * Получает пользователя по номеру телефона.
@@ -38,7 +44,7 @@ public interface UserService {
      * @param phone номер тел. пользователя.
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
-    Optional<User> getUserByPhone(String phone);
+    Optional<UserDto> getUserByPhone(String phone);
 
     /**
      * Удаляет пользователя по идентификатору.
@@ -52,5 +58,5 @@ public interface UserService {
      *
      * @return Список всех пользователей или null если не найдены.
      */
-    List<User> getAllUsers();
+    List<UserDto> getAllUsers();
 }
