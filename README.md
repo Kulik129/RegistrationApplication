@@ -99,7 +99,9 @@
 ```http
 POST /api/v1/users/add
 ```
+
 _**Content-Type: application/json**_
+
 ```json
 {
   "first_name": "John",
@@ -125,7 +127,9 @@ Location: /add/123  # где 123 - идентификатор созданног
 ```http
 PUT /api/v1/users/update-user-info/{id}
 ```
+
 **_Content-Type: application/json_**
+
 ```json
 {
   "first_name": "UpdatedFirstName",
@@ -139,8 +143,9 @@ PUT /api/v1/users/update-user-info/{id}
 ```http
 HTTP/1.1 200 OK
 ```
+
 **_Content-Type: application/json_**
-```
+
 ```json
 {
   "id": 123,
@@ -169,7 +174,9 @@ GET /api/v1/users/{id}
 ```http
 HTTP/1.1 200 OK
 ```
+
 **_Content-Type: application/json_**
+
 ```json
 {
   "id": 123,
@@ -198,7 +205,9 @@ GET /api/v1/users/by-email?email=john.doe@example.com
 ```http
 HTTP/1.1 200 OK
 ```
+
 **_Content-Type: application/json_**
+
 ```json
 {
   "id": 123,
@@ -244,21 +253,23 @@ GET /api/v1/users/all
 ```http
 HTTP/1.1 200 OK
 ```
+
 **_Content-Type: application/json_**
+
 ```json
 [
   {
-     "id": 123,
-     "first_name": "UpdatedFirstName",
-     "last_name": "UpdatedLastName",
-     "date_of_birth": "1990-01-02",
-     "phone_number": "89123456789",
-     "email": "john.doe@example.com",
-     "registration_date": "2023-11-19T14:27:55",
-     "subscription_end_date": "2044-11-23T14:31:11",
-     "role": "USER",
-     "active": true
-  },
+    "id": 123,
+    "first_name": "UpdatedFirstName",
+    "last_name": "UpdatedLastName",
+    "date_of_birth": "1990-01-02",
+    "phone_number": "89123456789",
+    "email": "john.doe@example.com",
+    "registration_date": "2023-11-19T14:27:55",
+    "subscription_end_date": "2044-11-23T14:31:11",
+    "role": "USER",
+    "active": true
+  }
   // Другие пользователи...
 ]
 ```
@@ -270,7 +281,9 @@ HTTP/1.1 200 OK
 ```http
 POST /api/v1/users/authenticate
 ```
+
 **_Content-Type: application/json_**
+
 ```json
 {
   "phone_number": "89123456789",
@@ -283,7 +296,9 @@ POST /api/v1/users/authenticate
 ```http
 HTTP/1.1 200 OK
 ```
+
 **_Content-Type: application/json_**
+
 ```json
 {
   "id": 123,
@@ -306,7 +321,9 @@ HTTP/1.1 200 OK
 ```http
 PUT /api/v1/users/password/{id}
 ```
+
 **_Content-Type: application/json_**
+
 ```json
 {
   "password": "securePassword",
