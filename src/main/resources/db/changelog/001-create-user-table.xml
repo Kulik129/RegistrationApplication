@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <!-- Создание таблицы пользователей (user) -->
+    <changeSet id="001-create-user" author="Dmitrii_Kulik">
+        <createTable tableName="user">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"></constraints>
+            </column>
+            <column name="first_name" type="VARCHAR(100)"></column>
+            <column name="last_name" type="VARCHAR(100)"></column>
+            <column name="date_of_birth" type="VARCHAR(10)"></column>
+            <column name="email" type="VARCHAR(200)">
+                <constraints unique="true"></constraints>
+            </column>
+            <column name="phone_number" type="VARCHAR(20)">
+                <constraints unique="true"></constraints>
+            </column>
+            <column name="password" type="VARCHAR(200)"></column>
+            <column name="registration_date" type="TIMESTAMP"></column>
+            <column name="subscription_end_date" type="TIMESTAMP"></column>
+            <column name="role" type="VARCHAR(50)"></column>
+            <column name="active" type="BOOLEAN"></column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

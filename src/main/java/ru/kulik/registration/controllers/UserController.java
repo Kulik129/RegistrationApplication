@@ -13,6 +13,8 @@ import ru.kulik.registration.DTO.UpdatePasswordDto;
 import ru.kulik.registration.DTO.UpdateUserInfoDto;
 import ru.kulik.registration.DTO.UserDto;
 import ru.kulik.registration.DTO.UserResponseDto;
+import ru.kulik.registration.exception.SubscriptionException;
+import ru.kulik.registration.exception.UserNotFoundException;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.model.UserRole;
 import ru.kulik.registration.service.UserService;
@@ -21,6 +23,7 @@ import ru.kulik.registration.util.ValidationUtil;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -217,6 +220,7 @@ public class UserController {
             return ValidationUtil.handleValidationErrors(bindingResult);
         }
         Optional<UserDto> user = userService.getUserByID(id);
+
         if (passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
             user.get().setPassword(passwordEncoder.encode(request.getPasswordNew()));
             userService.save(user.get());
@@ -235,14 +239,21 @@ public class UserController {
      * @return ResponseEntity с пользователем и статусом OK.
      */
     @PutMapping("/subscription/{id}")
-    public ResponseEntity<UserResponseDto> updateSubscription(@PathVariable long id, @RequestParam LocalDateTime dateTime) {
-        Optional<UserDto> user = userService.getUserByID(id);
-        if (user.isPresent()) {
-            user.get().setSubscriptionEndDate(dateTime);
-            userService.save(user.get());
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
+    public ResponseEntity<UserResponseDto> updateSubscription(@PathVariable long id, @RequestParam String dateTime) {
+        try {
+            LocalDateTime localDateTime = LocalDateTime.parse(dateTime);
+            Optional<UserDto> user = userService.getUserByID(id);
+
+            if (user.isPresent()) {
+                user.get().setSubscriptionEndDate(localDateTime);
+                userService.save(user.get());
+                return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+        } catch (DateTimeParseException ex) {
+            throw new SubscriptionException("Не валидная дата. Дата должна быть в формате 2023-12-31Т23:59:59, обратите внимание о наличии Т между датой и временем.", "Invalid date format.");
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
     /**
