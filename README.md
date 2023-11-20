@@ -1,5 +1,4 @@
-
-#  RESTful API для управления пользователями
+# RESTful API для управления пользователями
 
 Этот проект представляет собой простой микросервис для управления пользователями. Он включает в себя RESTful API для
 добавления, получения и удаления пользователей.
@@ -21,7 +20,7 @@
 
 ## Компоненты
 
- 📁 **_Проект состоит из следующих компонентов:_**
+📁 **_Проект состоит из следующих компонентов:_**
 
 > - `CorsConfig`: Класс конфигурации для обработки междоменных запросов (CORS).
 > - `UserController`: Контроллер для обработки HTTP-запросов, связанных с пользователями.
@@ -34,7 +33,7 @@
 > - `WebSecurityConfig`: Класс безопасности приложения, шифрование паролей и настройка доступа к ссылкам.
 > - `UserService`: Интерфейс для управления пользователями.
 > - `UserServiceImpl`: Реализация интерфейса UserService, включая методы для сохранения, получения и удаления
->   пользователей.
+    > пользователей.
 > - `UserValidator`: Класс валидатора для объектов User, проверяющий уникальность email и номера телефона.
 > - `application.properties`: Файл конфигурации для настройки приложения.
 
@@ -43,7 +42,7 @@
 ## Установка и запуск
 
 > **Примечание:** В `application.properties`, `allowed.origins=` поставьте хост на фактический адрес вашего приложения с
-которого будут отправляться запросы к этому API, например: `allowed.origins=http://localhost:8090`.
+> которого будут отправляться запросы к этому API, например: `allowed.origins=http://localhost:8090`.
 
 1. Клонируйте репозиторий:
 
@@ -97,9 +96,9 @@
 
 ### Запрос:
 
- ```http
- POST /api/v1/users/add
- ```
+```http
+POST /api/v1/users/add
+```
 
 _**Content-Type: application/json**_
 
@@ -125,9 +124,9 @@ Location: /add/123  # где 123 - идентификатор созданног
 
 ### Запрос:
 
- ```http
- PUT /api/v1/users/update-user-info/1
- ```
+```http
+PUT /api/v1/users/update-user-info/1
+```
 
 **_Content-Type: application/json_**
 
@@ -166,15 +165,15 @@ HTTP/1.1 200 OK
 
 ### Запрос:
 
- ```http
- GET /api/v1/users/123
- ```
+```http
+GET /api/v1/users/123
+```
 
 ### Ответ:
 
- ```http
- HTTP/1.1 200 OK
- ```
+```http
+HTTP/1.1 200 OK
+```
 
 **_Content-Type: application/json_**
 
@@ -197,9 +196,9 @@ HTTP/1.1 200 OK
 
 ### Запрос:
 
- ```http
- GET /api/v1/users/by-email?email=john.doe@example.com
- ```
+```http
+GET /api/v1/users/by-email?email=john.doe@example.com
+```
 
 ### Ответ:
 
@@ -319,9 +318,9 @@ HTTP/1.1 200 OK
 
 ### Запрос:
 
-   ```http
-   PUT /api/v1/users/password/1
-   ```
+```http
+PUT /api/v1/users/password/1
+```
 
 **_Content-Type: application/json_**
 
@@ -336,52 +335,87 @@ HTTP/1.1 200 OK
 
 ```http
 HTTP/1.1 200 OK
-Content-Type: application/json
+```
+**_Content-Type: application/json_**
+```json
+{
+  "id": 123,
+  "first_name": "John",
+  "last_name": "Doe",
+  "date_of_birth": "1990-01-02",
+  "phone_number": "89123456789",
+  "email": "john.doe@example.com",
+  "registration_date": "2023-11-19T14:27:55",
+  "subscription_end_date": "2044-11-23T14:31:11",
+  "role": "USER",
+  "active": true
+}
 ```
 
 > ## 🫧 9. Обновление роли пользователя, например ADMIN
 
 ```http
-  PUT /role/1?param=true
-  ```
-
-Ответ:
-
-   ```json
-   {
-       "id": 1,
-       "firstName": "John",
-       "lastName": "Doe",
-       "dateOfBirth": "1990-01-02",
-       "email": "john.doe@example.com",
-       "phoneNumber": "89123456789",
-       "registrationDate": "2023-11-19T14:27:55.105896",
-       "subscriptionEndDate": "2023-12-31T23:59:59",
-       "role": "ADMIN",
-       "active": true
-   }
-   ```
-
-> ## 🫧 10. Блокировка пользователя
-
-  ```http
-  PUT /active/1?param=false
-  ```
-
+PUT /api/v1/users/role/1?param=true
+```
 
 Ответ:
 
 ```json
 {
-   "id": 1,
-   "firstName": "John",
-   "lastName": "Doe",
-   "dateOfBirth": "1990-01-02",
-   "email": "john.doe@example.com",
-   "phoneNumber": "89123456789",
-   "registrationDate": "2023-11-19T14:27:55.105896",
-   "subscriptionEndDate": "2023-12-31T23:59:59",
-   "role": "ADMIN",
-   "active": false
+  "id": 1,
+  "firstName": "John",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-01-02",
+  "email": "john.doe@example.com",
+  "phoneNumber": "89123456789",
+  "registrationDate": "2023-11-19T14:27:55.105896",
+  "subscriptionEndDate": "2023-12-31T23:59:59",
+  "role": "ADMIN",
+  "active": true
+}
+```
+
+> ## 🫧 10. Блокировка пользователя
+
+```http
+PUT /api/v1/users/active/1?param=false
+```
+
+Ответ:
+
+```json
+{
+  "id": 1,
+  "firstName": "John",
+  "lastName": "Doe",
+  "dateOfBirth": "1990-01-02",
+  "email": "john.doe@example.com",
+  "phoneNumber": "89123456789",
+  "registrationDate": "2023-11-19T14:27:55.105896",
+  "subscriptionEndDate": "2023-12-31T23:59:59",
+  "role": "ADMIN",
+  "active": false
 }
  ```
+
+> ## 🫧 11. Обновление окончания даты подписки
+ ```http 
+PUT /api/v1/users/subscription/1?dateTime=2023-12-31T23:59:59
+```
+
+Ответ:
+
+```json
+{
+    "id": 2,
+    "first_name": "John",
+    "last_name": "Doe",
+    "date_of_birth": "1990-01-02",
+    "phone_number": "89123456789",
+    "email": "john.doe@example.com",
+    "registration_date": "2023-11-20T12:44:27",
+    "subscription_end_date": "2023-12-31T23:59:59",
+    "role": "USER",
+    "active": true
+}
+```
