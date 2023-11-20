@@ -13,8 +13,10 @@
 > - Spring Framework (Spring Boot) 3.1.5
 > - Spring Data JPA
 > - Spring Security
+> - Liquibase
+> - PostgreSQL
+> - Hibernate
 > - RESTful API
-> - MySQL
 > - JUnit 5
 > - Maven
 
@@ -32,8 +34,7 @@
 > - `UserRepository`: Интерфейс репозитория для сущностей User, расширяющий JpaRepository.
 > - `WebSecurityConfig`: Класс безопасности приложения, шифрование паролей и настройка доступа к ссылкам.
 > - `UserService`: Интерфейс для управления пользователями.
-> - `UserServiceImpl`: Реализация интерфейса UserService, включая методы для сохранения, получения и удаления
-    > пользователей.
+> - `UserServiceImpl`: Реализация интерфейса UserService, включая методы для сохранения, получения и удаления пользователей.
 > - `UserValidator`: Класс валидатора для объектов User, проверяющий уникальность email и номера телефона.
 > - `application.properties`: Файл конфигурации для настройки приложения.
 
