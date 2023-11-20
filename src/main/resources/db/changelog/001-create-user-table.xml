@@ -6,9 +6,9 @@
 
     <!-- Создание таблицы пользователей (user) -->
     <changeSet id="001-create-user" author="Dmitrii_Kulik">
-        <createTable tableName="user">
+        <createTable tableName="user_entity">
             <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true"></constraints>
+                <constraints primaryKey="true" nullable="false"></constraints>
             </column>
             <column name="first_name" type="VARCHAR(100)"></column>
             <column name="last_name" type="VARCHAR(100)"></column>
@@ -22,7 +22,7 @@
             <column name="password" type="VARCHAR(200)"></column>
             <column name="registration_date" type="TIMESTAMP"></column>
             <column name="subscription_end_date" type="TIMESTAMP"></column>
-            <column name="role" type="VARCHAR(50)"></column>
+            <column name="role" type="smallint"></column>
             <column name="active" type="BOOLEAN"></column>
         </createTable>
     </changeSet>
