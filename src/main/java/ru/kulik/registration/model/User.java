@@ -17,22 +17,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String firstName;
     private String lastName;
     private String dateOfBirth;
-    @Column(unique = true)
     private String email;
-    @Column(unique = true)
     private String phoneNumber;
     private String password;
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime registrationDate;
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime subscriptionEndDate;
     private UserRole role;
-    @Column(columnDefinition = "BIT")
     private boolean active;
 
     public User(String firstName, String lastName, String dateOfBirth, String email, String phone, String password) {

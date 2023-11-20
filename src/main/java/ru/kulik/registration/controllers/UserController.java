@@ -14,7 +14,6 @@ import ru.kulik.registration.DTO.UpdateUserInfoDto;
 import ru.kulik.registration.DTO.UserDto;
 import ru.kulik.registration.DTO.UserResponseDto;
 import ru.kulik.registration.exception.SubscriptionException;
-import ru.kulik.registration.exception.UserNotFoundException;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.model.UserRole;
 import ru.kulik.registration.service.UserService;
@@ -24,7 +23,8 @@ import ru.kulik.registration.util.ValidationUtil;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
