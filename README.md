@@ -146,7 +146,7 @@ Location: /add/123  # где 123 - идентификатор созданног
 ### Запрос:
 
 ```http
-PUT /api/v1/users/update-user-info/1
+PUT /api/v1/users/update-user-info/123
 ```
 
 **_Content-Type: application/json_**
@@ -340,7 +340,7 @@ HTTP/1.1 200 OK
 ### Запрос:
 
 ```http
-PUT /api/v1/users/password/1
+PUT /api/v1/users/password/123
 ```
 
 **_Content-Type: application/json_**
@@ -439,4 +439,14 @@ PUT /api/v1/users/subscription/1?dateTime=2023-12-31T23:59:59
     "role": "USER",
     "active": true
 }
+```
+
+> ## 🫧 12. Восстановление пароля
+ ```http 
+PUT /api/v1/users/update-password/1
+```
+
+Ответ:
+```http
+HTTP/1.1 200 OK
 ```

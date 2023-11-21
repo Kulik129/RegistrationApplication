@@ -4,7 +4,6 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
 
-    <!-- Создание таблицы пользователей (user) -->
     <changeSet id="001-create-user" author="Dmitrii_Kulik">
         <createTable tableName="user_entity">
             <column name="id" type="BIGINT" autoIncrement="true">

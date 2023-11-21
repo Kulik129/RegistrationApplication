@@ -14,6 +14,8 @@ import ru.kulik.registration.DTO.UpdateUserInfoDto;
 import ru.kulik.registration.DTO.UserDto;
 import ru.kulik.registration.DTO.UserResponseDto;
 import ru.kulik.registration.exception.SubscriptionException;
+import ru.kulik.registration.mail.EmailSenderService;
+import ru.kulik.registration.security.Password;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.model.UserRole;
 import ru.kulik.registration.service.UserService;
@@ -37,21 +39,15 @@ public class UserController {
     private final UserValidator userValidator;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
+    private final EmailSenderService emailService;
 
-    /**
-     * Конструктор контроллера.
-     *
-     * @param userService     Сервис для управления пользователями.
-     * @param userValidator
-     * @param passwordEncoder
-     * @param modelMapper
-     */
     @Autowired
-    public UserController(UserService userService, UserValidator userValidator, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+    public UserController(UserService userService, UserValidator userValidator, PasswordEncoder passwordEncoder, ModelMapper modelMapper, EmailSenderService emailService) {
         this.userService = userService;
         this.userValidator = userValidator;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
+        this.emailService = emailService;
     }
 
     /**
@@ -61,22 +57,20 @@ public class UserController {
     public ResponseEntity<?> addUser(@RequestBody @Valid UserDto user, BindingResult bindingResult) {
         User userMap = modelMapper.map(user, User.class);
         userValidator.validate(userMap, bindingResult);
-
         if (bindingResult.hasErrors()) {
             return ValidationUtil.handleValidationErrors(bindingResult);
         }
-
         userService.createUser(user);
+        emailService.sendEmail(user.getEmail(),"Добро пожаловать",user.getFirstName()+" Приветствуем Вас!");
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(user.getId())
                 .toUri();
-
         return ResponseEntity.created(location).build();
     }
 
     /**
-     * Обновляет данные о пользователе. Имя, фамилию, дату рождения, номер телефона.
+     * Обновляет данные о пользователе. Имя, фамилию, дату рождения.
      *
      * @param id      id пользователя.
      * @param request json с данными.
@@ -84,7 +78,6 @@ public class UserController {
      */
     @PutMapping("/update-user-info/{id}")
     public ResponseEntity<?> updateUser(@PathVariable long id, @RequestBody @Valid UpdateUserInfoDto request, BindingResult bindingResult) {
-
         if (bindingResult.hasErrors()) {
             return ValidationUtil.handleValidationErrors(bindingResult);
         }
@@ -94,9 +87,7 @@ public class UserController {
             userUpdate.setFirstName(request.getFirstName());
             userUpdate.setLastName(request.getLastName());
             userUpdate.setDateOfBirth(request.getDateOfBirth());
-
             userService.save(userUpdate);
-
             return new ResponseEntity<>(UserResponseDto.fromUserDto(userUpdate), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -113,7 +104,6 @@ public class UserController {
     @GetMapping("{id}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable long id) {
         Optional<UserDto> user = userService.getUserByID(id);
-
         if (user.isPresent()) {
             return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         } else {
@@ -130,7 +120,6 @@ public class UserController {
     @GetMapping("/by-email")
     public ResponseEntity<UserResponseDto> getUserByEmail(@RequestParam String email) {
         Optional<UserDto> user = userService.getUserByEmail(email);
-
         if (user.isPresent()) {
             return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         } else {
@@ -147,7 +136,6 @@ public class UserController {
     @GetMapping("/by-phone-number")
     public ResponseEntity<UserResponseDto> getUserByPhoneNumber(@RequestParam String phone) {
         Optional<UserDto> user = userService.getUserByPhone(phone);
-
         if (user.isPresent()) {
             return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         } else {
@@ -178,13 +166,11 @@ public class UserController {
     @GetMapping("/all")
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
         List<UserDto> users = userService.getAllUsers();
-
         if (!users.isEmpty()) {
 
             List<UserResponseDto> responseDtos = users.stream()
                     .map(UserResponseDto::fromUserDto)
                     .collect(Collectors.toList());
-
             return new ResponseEntity<>(responseDtos, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -220,7 +206,6 @@ public class UserController {
             return ValidationUtil.handleValidationErrors(bindingResult);
         }
         Optional<UserDto> user = userService.getUserByID(id);
-
         if (passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
             user.get().setPassword(passwordEncoder.encode(request.getPasswordNew()));
             userService.save(user.get());
@@ -243,14 +228,12 @@ public class UserController {
         try {
             LocalDateTime localDateTime = LocalDateTime.parse(dateTime);
             Optional<UserDto> user = userService.getUserByID(id);
-
             if (user.isPresent()) {
                 user.get().setSubscriptionEndDate(localDateTime);
                 userService.save(user.get());
                 return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
         } catch (DateTimeParseException ex) {
             throw new SubscriptionException("Не валидная дата. Дата должна быть в формате 2023-12-31Т23:59:59, обратите внимание о наличии Т между датой и временем.", "Invalid date format.");
         }
@@ -259,7 +242,7 @@ public class UserController {
     /**
      * Обновление роли пользователя на admin.
      *
-     * @param id   Идентификатор пользователя.
+     * @param id Идентификатор пользователя.
      * @return ResponseEntity с пользователем и статусом OK в случае успеха, иначе BAD_REQUEST.
      */
     @PutMapping("/role/{id}")
@@ -280,6 +263,7 @@ public class UserController {
 
     /**
      * Блокировка пользователя.
+     *
      * @param id id пользователя.
      * @return ResponseEntity с пользователем и статусом OK в случае успеха, иначе BAD_REQUEST.
      */
@@ -297,6 +281,24 @@ public class UserController {
             return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    /**
+     * Восстановление пароля. Новый пароль отправляется на почту указанную при регистрации.
+     * @param id id пользователя.
+     * @return статус OK в случае успеха, иначе BAD_REQUEST.
+     */
+    @PutMapping("/update-password/{id}")
+    public ResponseEntity<?> updatePassword(@PathVariable long id) {
+        Optional<UserDto> user = userService.getUserByID(id);
+        if (user.isPresent()) {
+            StringBuilder newPassword = Password.generate();
+            user.get().setPassword(passwordEncoder.encode(newPassword.toString()));
+            userService.save(user.get());
+            emailService.sendEmail(user.get().getEmail(), "Восстановление пароля", "Ваш новый пароль: " + newPassword);
+            return  ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
     }
 }
 
