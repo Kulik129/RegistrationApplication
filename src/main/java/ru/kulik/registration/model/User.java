@@ -45,4 +45,12 @@ public class User {
         this.email = email;
         this.password = password;
     }
+    public User(long id, String firsName, String lastName, String email, String password, String phoneNumber) {
+        this.id = id;
+        this.firstName = firsName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+    }
 }
