@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kulik.registration.DTO.UserDto;
@@ -17,6 +18,8 @@ import ru.kulik.registration.model.User;
 import ru.kulik.registration.model.UserRole;
 import ru.kulik.registration.repository.UserRepository;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,37 +37,92 @@ class UserServiceTest {
     @InjectMocks
     private UserServiceImpl userService;
 
+    User user = new User(1,"Tom", "Shelby", "tom@example.com", "123456","89251112233");
+
     @Test
-    void testSaveUserWithValidPassword() {
-        UserDto userDto = new UserDto("John", "Doe", "john@example.com", "123456");
-        User user = new User("John", "Doe", "john@example.com", "123456");
+    void createUser() {
+        UserDto userTest = new UserDto();
+        userTest.setFirstName("Tom");
+        userTest.setLastName("Shelby");
+        userTest.setEmail("tom@example.com");
+        userTest.setPassword("123456");
 
-        when(modelMapper.map(userDto, User.class)).thenReturn(user);
-        when(userRepository.save(user)).thenReturn(user);
 
-        assertDoesNotThrow(() -> userService.save(userDto));
-        verify(userRepository, times(1)).save(user);
+        when(passwordEncoder.encode(userTest.getPassword())).thenReturn("$2a$10$IxvI0pKiG.vSWkSY1CpcCePC901i8/hK68wm4KMEByz2EV1/HFIC.");
+
+        userService.createUser(userTest);
+
+        assertEquals("$2a$10$IxvI0pKiG.vSWkSY1CpcCePC901i8/hK68wm4KMEByz2EV1/HFIC.", userTest.getPassword());
+        assertEquals(UserRole.USER, userTest.getRole());
+        assertEquals(true, userTest.isActive());
+        assertTrue(!"12345678".equals(userTest.getPassword()));
     }
 
     @Test
-    void testGetUserById() {
-        long userId = 1L;
-        User user = new User("John", "Doe", "john@example.com", "123456");
+    void getUserById() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(modelMapper.map(user, UserDto.class)).thenReturn(new UserDto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword(), user.getPhoneNumber()));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(modelMapper.map(user, UserDto.class)).thenReturn(new UserDto("John", "Doe", "john@example.com", "123456"));
-
-        Optional<UserDto> result = userService.getUserByID(userId);
+        Optional<UserDto> result = userService.getUserByID(user.getId());
 
         assertTrue(result.isPresent());
-        assertEquals("John", result.get().getFirstName());
-        assertEquals("Doe", result.get().getLastName());
-        assertEquals("john@example.com", result.get().getEmail());
+        assertEquals("Tom", result.get().getFirstName());
+        assertEquals("Shelby", result.get().getLastName());
+        assertEquals("tom@example.com", result.get().getEmail());
         assertEquals("123456", result.get().getPassword());
     }
 
     @Test
-    void testGetUserByIdNotFound() {
+    public void existsByEmail() {
+        // Подготовка тестовых данных
+        String existingEmail = "existing@example.com";
+
+        // Настройка поведения mock объекта UserRepository
+        when(userRepository.existsByEmail(existingEmail)).thenReturn(true);
+
+        // Вызов метода, который мы хотим протестировать
+        boolean result = userService.existsByEmail(existingEmail);
+
+        // Проверка, что метод возвращает true, так как пользователь существует
+        assertTrue(result);
+    }
+
+    @Test
+    void existsByEmailFalse() {
+        // Подготавливаем тестовые данные
+        String existingEmail = "tomas@shelby.com";
+
+        // Настраиваем поведение mock объекта UserRepository для сценария существования пользователя
+        when(userRepository.existsByEmail(existingEmail)).thenReturn(true);
+
+        // Вызываем метод, который мы хотим протестировать
+        boolean result = userService.existsByEmail(existingEmail);
+
+        // Проверяем, что метод возвращает true, так как пользователь существует
+        assertTrue(result);
+    }
+    @Test
+    void existsByPhoneNumber() {
+        String number = "89251112233";
+        when(userRepository.existsByPhoneNumber(number)).thenReturn(true);
+
+        boolean result = userService.existsByPhoneNumber(number);
+
+        assertTrue(result);
+    }
+
+    @Test
+    void existsByPhoneNumberFalse() {
+        String number = "89251112233";
+        when(userRepository.existsByPhoneNumber(number)).thenReturn(false);
+
+        boolean result = userService.existsByPhoneNumber(number);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void getUserByIdNotFound() {
         long userId = 1L;
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -73,36 +131,54 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetByEmail() {
-        String email = "poll@gmai.com";
-        User user = new User("Polli", "Shelby", "28.10.1967", "poll@gmai.com", "89681111111", "123456");
+    void getByEmail() {
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(modelMapper.map(user, UserDto.class)).thenReturn(new UserDto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword(), user.getPhoneNumber()));
 
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(modelMapper.map(user, UserDto.class)).thenReturn(new UserDto("Polli", "Shelby", "28.10.1967", "poll@gmai.com", "89681111111", "123456"));
-
-        Optional<UserDto> result = userService.getUserByEmail(email);
+        Optional<UserDto> result = userService.getUserByEmail(user.getEmail());
 
         assertTrue(result.isPresent());
-        assertEquals("Polli", result.get().getFirstName());
+        assertEquals("Tom", result.get().getFirstName());
         assertEquals("Shelby", result.get().getLastName());
-        assertEquals("poll@gmai.com", result.get().getEmail());
+        assertEquals("tom@example.com", result.get().getEmail());
         assertEquals("123456", result.get().getPassword());
     }
 
     @Test
-    void testGetUserByPhone() {
-        String phone = "89685678945";
-        User user = new User("Grey", "Shelby", "18.10.1967", "grey@gmai.com", "89685678945", "123456");
+    void getUserByPhone() {
+        when(userRepository.findByPhoneNumber(user.getPhoneNumber())).thenReturn(Optional.of(user));
+        when(modelMapper.map(user, UserDto.class)).thenReturn(new UserDto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword(), user.getPhoneNumber()));
 
-        when(userRepository.findByPhoneNumber(phone)).thenReturn(Optional.of(user));
-        when(modelMapper.map(user, UserDto.class)).thenReturn(new UserDto("Grey", "Shelby", "18.10.1967", "grey@gmai.com", "89685678945", "123456"));
-
-        Optional<UserDto> result = userService.getUserByPhone(phone);
+        Optional<UserDto> result = userService.getUserByPhone(user.getPhoneNumber());
 
         assertTrue(result.isPresent());
-        assertEquals("Grey", result.get().getFirstName());
+        assertEquals("Tom", result.get().getFirstName());
         assertEquals("Shelby", result.get().getLastName());
-        assertEquals("grey@gmai.com", result.get().getEmail());
-        assertEquals("123456", result.get().getPassword());
+        assertEquals("tom@example.com", result.get().getEmail());
+        assertEquals("89251112233",result.get().getPhoneNumber());
+    }
+
+    @Test
+    void delete() {
+        userService.delete(user.getId());
+
+        verify(userRepository).deleteById(user.getId());
+    }
+
+    @Test
+    public void testGetAllUsers() {
+        User user1 = new User(1, "Tom", "Shelby", "tom@shelby.com", "654321","89251112233");
+        User user2 = new User(2, "Artur", "Shelby", "artur@shelby.com", "123456","89252221133");
+
+        List<User> mockUsers = Arrays.asList(user1, user2);
+
+        // Ожидаем, что метод findAll в userRepository вернет mockUsers
+        when(userRepository.findAll()).thenReturn(mockUsers);
+
+        // Вызываем метод, который мы хотим протестировать
+        List<UserDto> result = userService.getAllUsers();
+
+        // Проверяем, что результат соответствует ожидаемому списку UserDto
+        assertEquals(2, result.size());
     }
 }
