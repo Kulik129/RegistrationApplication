@@ -47,19 +47,12 @@ public class UserDto {
     private UserRole role;
     private boolean active;
 
-    public UserDto(String firstName, String lastName, String dateOfBirth, String email, String phoneNumber, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.dateOfBirth = dateOfBirth;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.password = password;
-    }
-    public UserDto(String firsName, String lastName, String email, String password) {
+    public UserDto(long id, String firsName, String lastName, String email, String password, String phoneNumber) {
+        this.id = id;
         this.firstName = firsName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.phoneNumber = phoneNumber;
     }
-
 }
