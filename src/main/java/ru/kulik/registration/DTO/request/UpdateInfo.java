@@ -1,15 +1,17 @@
-package ru.kulik.registration.DTO;
+package ru.kulik.registration.DTO.request;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class UpdateUserInfoDto {
+public class UpdateInfo {
     @NotBlank(message = "Требуется имя.")
     @Size(min = 3, max = 50, message = "Имя должно быть от 3 до 50 символов.")
     private String firstName;
