@@ -1,10 +1,16 @@
 package ru.kulik.registration.service;
 
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.kulik.registration.DTO.UserDto;
+import org.springframework.transaction.annotation.Transactional;
+import ru.kulik.registration.DTO.request.UpdatePassword;
+import ru.kulik.registration.DTO.request.UpdateInfo;
+import ru.kulik.registration.DTO.request.UserAuthenticate;
+import ru.kulik.registration.DTO.request.UserRequest;
+import ru.kulik.registration.DTO.response.UserResponse;
+import ru.kulik.registration.exception.IncorrectPasswordException;
 import ru.kulik.registration.exception.UserNotFoundException;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.model.UserRole;
@@ -20,28 +26,14 @@ import java.util.stream.Collectors;
  * Класс предоставляет методы для сохранения, получения и удаления пользователей.
  */
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    //regionDI
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
+    //endregion
 
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.modelMapper = modelMapper;
-    }
-
-    /**
-     * Сохраняет пользователя.
-     *
-     * @param userDto Объект пользователя, который должен быть сохранен.
-     */
-    @Override
-    public void save(UserDto userDto) {
-        User user = modelMapper.map(userDto, User.class);
-        userRepository.save(user);
-    }
 
     /**
      * Получает пользователя по идентификатору.
@@ -50,27 +42,36 @@ public class UserServiceImpl implements UserService {
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
     @Override
-    public Optional<UserDto> getUserByID(long id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            return user.map(value -> modelMapper.map(value, UserDto.class));
-        } else {
-            throw new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id");
-        }
+    @Transactional(readOnly = true)
+    public UserResponse getUserByID(long id) {
+        return userRepository.findById(id)
+                .map(user -> modelMapper.map(user, UserResponse.class))
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id"));
     }
 
     /**
      * Создает нового пользователя.
      *
-     * @param user Пользователь для создания.
+     * @param request Пользователь для создания.
      */
     @Override
-    public void createUser(UserDto user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRole(UserRole.USER);
-        user.setActive(true);
-        user.setRegistrationDate(LocalDateTime.now());
-        save(user);
+    @Transactional
+    public UserResponse createUser(UserRequest request) {
+        User createUser = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .dateOfBirth(request.getDateOfBirth())
+                .email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .registrationDate(LocalDateTime.now())
+                .subscriptionEndDate(LocalDateTime.now().plusDays(1))
+                .role(UserRole.USER)
+                .active(true)
+                .build();
+
+        User user = userRepository.save(createUser);
+        return modelMapper.map(user, UserResponse.class);
     }
 
     /**
@@ -80,13 +81,12 @@ public class UserServiceImpl implements UserService {
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
     @Override
-    public Optional<UserDto> getUserByEmail(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent()) {
-            return user.map(value -> modelMapper.map(value, UserDto.class));
-        } else {
-            throw new UserNotFoundException("Пользователь с email " + email + " не найден", "Not found email");
-        }
+    @Transactional(readOnly = true)
+    public UserResponse getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(user -> modelMapper.map(user, UserResponse.class))
+                .orElseThrow(() ->
+                        new UserNotFoundException("Пользователь с email " + email + " не найден", "Not found email"));
     }
 
     /**
@@ -96,13 +96,12 @@ public class UserServiceImpl implements UserService {
      * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
      */
     @Override
-    public Optional<UserDto> getUserByPhone(String phone) {
-        Optional<User> user = userRepository.findByPhoneNumber(phone);
-        if (user.isPresent()) {
-            return user.map(value -> modelMapper.map(value, UserDto.class));
-        } else {
-            throw new UserNotFoundException("Пользователь с номером " + phone + " не найден", "Not found phone");
-        }
+    @Transactional(readOnly = true)
+    public UserResponse getUserByPhone(String phone) {
+        return userRepository.findByPhoneNumber(phone)
+                .map(user -> modelMapper.map(user, UserResponse.class))
+                .orElseThrow(() ->
+                        new UserNotFoundException("Пользователь с номером " + phone + " не найден", "Not found phone"));
     }
 
     /**
@@ -111,7 +110,7 @@ public class UserServiceImpl implements UserService {
      * @param id Идентификатор пользователя, которого нужно удалить.
      */
     @Override
-    public void delete(long id) {
+    public void deleteUserByID(long id) {
         userRepository.deleteById(id);
     }
 
@@ -121,30 +120,107 @@ public class UserServiceImpl implements UserService {
      * @return Список всех пользователей или null если не найдены.
      */
     @Override
-    public List<UserDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(user -> modelMapper.map(user, UserDto.class))
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> modelMapper.map(user, UserResponse.class))
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Проверка существования пользователя в базе по email.
-     *
-     * @param email email пользователя.
-     * @return true если пользователь найден.
-     */
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+    @Transactional
+    @Override
+    public UserResponse updateUserInfo(long id, UpdateInfo updateInfo) {
+        Optional<User> updatedUser = userRepository.findById(id);
+        updatedUser.ifPresent(user -> {
+            user.setFirstName(updateInfo.getFirstName());
+            user.setLastName(updateInfo.getLastName());
+            user.setDateOfBirth(updateInfo.getDateOfBirth());
+            userRepository.save(user);
+        });
+
+        return updatedUser
+                .map(user -> modelMapper.map(user, UserResponse.class))
+                .orElseThrow(() ->
+                        new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id"));
     }
 
-    /**
-     * Проверка существования пользователя в базе по номеру телефона.
-     *
-     * @param phone тел. пользователя.
-     * @return true если пользователь найден.
-     */
-    public boolean existsByPhoneNumber(String phone) {
-        return userRepository.existsByPhoneNumber(phone);
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse authenticate(UserAuthenticate data) {
+        return userRepository.findByPhoneNumber(data.getPhoneNumber())
+                .map(user -> {
+                    if (passwordEncoder.matches(data.getPassword(), user.getPassword())) {
+                        return modelMapper.map(user, UserResponse.class);
+                    } else {
+                        throw new IncorrectPasswordException("Неверный пароль","INVALID");
+                    }
+                })
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с номером " + data.getPhoneNumber() + " не найден", "Not found id"));
+    }
+
+
+    @Override
+    @Transactional
+    public UserResponse updatePassword(long id, UpdatePassword data) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    if (passwordEncoder.matches(data.getPassword(), user.getPassword())){
+                        user.setPassword(passwordEncoder.encode(data.getPasswordNew()));
+                        User save = userRepository.save(user);
+                        return modelMapper.map(save, UserResponse.class);
+                    } else {
+                        throw new IncorrectPasswordException("Неверный пароль","INVALID");
+                    }
+                })
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id"));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateSubscription(long id, String dateTime) { // 2029-12-31T23:59:59
+        return userRepository.findById(id)
+                .map(user -> {
+                    LocalDateTime time = LocalDateTime.parse(dateTime);
+                    user.setSubscriptionEndDate(time);
+                    User save = userRepository.save(user);
+                    return modelMapper.map(save, UserResponse.class);
+                })
+                .orElseThrow(()->  new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id"));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateRole(long id, boolean param) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    if (param) {
+                        user.setRole(UserRole.ADMIN);
+                        User save = userRepository.save(user);
+                        return modelMapper.map(save, UserResponse.class);
+                    } else {
+                        user.setRole(UserRole.USER);
+                        User user1 = userRepository.save(user);
+                        return modelMapper.map(user1, UserResponse.class);
+                    }
+                })
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id"));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateActive(long id, boolean param) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    if (param) {
+                        user.setActive(true);
+                        User save = userRepository.save(user);
+                        return modelMapper.map(save, UserResponse.class);
+                    } else {
+                        user.setActive(false);
+                        User user1 = userRepository.save(user);
+                        return modelMapper.map(user1, UserResponse.class);
+                    }
+                })
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id"));
     }
 }

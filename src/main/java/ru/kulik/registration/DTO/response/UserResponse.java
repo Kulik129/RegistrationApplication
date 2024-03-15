@@ -2,8 +2,10 @@ package ru.kulik.registration.DTO;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.kulik.registration.model.UserRole;
@@ -11,6 +13,7 @@ import ru.kulik.registration.model.UserRole;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -47,12 +50,4 @@ public class UserDto {
     private UserRole role;
     private boolean active;
 
-    public UserDto(long id, String firsName, String lastName, String email, String password, String phoneNumber) {
-        this.id = id;
-        this.firstName = firsName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.phoneNumber = phoneNumber;
-    }
 }

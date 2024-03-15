@@ -9,8 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UpdatePasswordDto {
     @NotBlank(message = "Требуется пароль.")
