@@ -1,22 +1,19 @@
 package ru.kulik.registration.util;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import ru.kulik.registration.model.User;
-import ru.kulik.registration.service.UserServiceImpl;
+import ru.kulik.registration.repository.UserRepository;
 
 /**
  * Класс валидатора для объектов User, проверяющий уникальность email и номера телефона.
  */
 @Component
+@RequiredArgsConstructor
 public class UserValidator implements Validator {
-    private final UserServiceImpl userService;
-
-    public UserValidator(UserServiceImpl userService) {
-        this.userService = userService;
-    }
-
+    private final UserRepository repository;
     @Override
     public boolean supports(Class<?> clazz) {
         return User.class.equals(clazz);
@@ -26,10 +23,10 @@ public class UserValidator implements Validator {
     public void validate(Object target, Errors errors) {
         User user = (User) target;
 
-        if (userService.existsByEmail(user.getEmail())) {
+        if (repository.existsByEmail(user.getEmail())) {
             errors.rejectValue("email", "", "Этот логин занят.");
         }
-        if (userService.existsByPhoneNumber(user.getPhoneNumber())) {
+        if (repository.existsByPhoneNumber(user.getPhoneNumber())) {
             errors.rejectValue("phoneNumber", "", "Этот номер телефона занят.");
         }
     }
