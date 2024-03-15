@@ -177,7 +177,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse updateSubscription(long id, String dateTime) { // 2029-12-31T23:59:59
+    public UserResponse updateSubscription(long id, String dateTime) {
         return userRepository.findById(id)
                 .map(user -> {
                     LocalDateTime time = LocalDateTime.parse(dateTime);
