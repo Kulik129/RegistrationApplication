@@ -17,7 +17,7 @@ public interface UserService {
      * Получает пользователя по идентификатору.
      *
      * @param id Идентификатор пользователя.
-     * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
+     * @return UserResponse с данными.
      */
     UserResponse getUserByID(long id);
 
@@ -32,7 +32,7 @@ public interface UserService {
      * Получает пользователя по email.
      *
      * @param email email пользователя.
-     * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
+     * @return UserResponse с данными.
      */
     UserResponse getUserByEmail(String email);
 
@@ -40,7 +40,7 @@ public interface UserService {
      * Получает пользователя по номеру телефона.
      *
      * @param phone номер тел. пользователя.
-     * @return Optional, содержащий пользователя, если найден, или пустой, если не найден.
+     * @return UserResponse с данными.
      */
     UserResponse getUserByPhone(String phone);
 
@@ -79,7 +79,7 @@ public interface UserService {
      * Обновление пароля пользователя.
      *
      * @param id             id пользователя.
-     * @param updatePassword
+     * @param updatePassword новый и старый пароль.
      * @return UserResponse с обновленными данными.
      */
     UserResponse updatePassword(long id, UpdatePassword updatePassword);
