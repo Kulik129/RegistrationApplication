@@ -1,8 +1,8 @@
 package ru.kulik.registration.DTO.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,8 +24,10 @@ public class UserResponse {
     private String email;
     private String phoneNumber;
     private String password;
-    private LocalDateTime registrationDate;
-    private LocalDateTime subscriptionEndDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime registration;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime subscriptionEnd;
     private UserRole role;
     private boolean active;
 }
