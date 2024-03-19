@@ -15,6 +15,8 @@ import ru.kulik.registration.exception.UserNotFoundException;
 import ru.kulik.registration.model.User;
 import ru.kulik.registration.model.UserRole;
 import ru.kulik.registration.repository.UserRepository;
+import ru.kulik.registration.security.Password;
+import ru.kulik.registration.service.mail.EmailSender;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
+    private final EmailSender emailSender;
     //endregion
 
 
@@ -220,6 +223,20 @@ public class UserServiceImpl implements UserService {
                         User user1 = userRepository.save(user);
                         return modelMapper.map(user1, UserResponse.class);
                     }
+                })
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id"));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse createNewRandomPassword(long id) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    StringBuilder generatePassword = Password.generate();
+                    user.setPassword(passwordEncoder.encode(generatePassword));
+                    userRepository.save(user);
+                    emailSender.sendEmail(user.getEmail(), "Обновление пароля", "Ваш новый пароль: " + generatePassword);
+                    return modelMapper.map(user, UserResponse.class);
                 })
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден", "Not found id"));
     }
