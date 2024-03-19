@@ -110,4 +110,5 @@ public interface UserService {
      * @return UserResponse с обновленными данными.
      */
     UserResponse updateActive(long id, boolean param);
+    UserResponse createNewRandomPassword(long id);
 }
