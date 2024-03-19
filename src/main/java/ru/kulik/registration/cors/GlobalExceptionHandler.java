@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import ru.kulik.registration.exception.IncorrectPasswordException;
 import ru.kulik.registration.exception.SubscriptionException;
 import ru.kulik.registration.util.ApiValidationError;
 import ru.kulik.registration.exception.UserNotFoundException;
@@ -40,6 +41,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<Object> handleInvalidDateException(SubscriptionException ex) {
         return new ResponseEntity<>(new ApiValidationError("",ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler
+    public ResponseEntity<Object> invalidPassword(IncorrectPasswordException ex) {
+        String errorMessage = "Ошибка в пароле или пароль не верный. Убедитесь что пароль написан корректно и у вас не включена клавиша Caps Lock";
+        return new ResponseEntity<>(new ApiValidationError(errorMessage, ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler
     public ResponseEntity<Object> handleOtherExceptions(Exception ex, WebRequest request) {
