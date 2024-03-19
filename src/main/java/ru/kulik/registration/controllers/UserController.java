@@ -140,5 +140,13 @@ public class UserController {
     public ResponseEntity<String> updateActive(@PathVariable long id, @RequestParam boolean param) {
         return ResponseEntity.status(HttpStatus.OK).body(tokenService.updateActive(id, param));
     }
+    @Operation(
+            summary = "Смена забытого пароля.",
+            description = "Возвращает JWT token с данными пользователя и статусом OK. Отправляется пароль пользователю на email.")
+    @PutMapping("/update-password/{id}")
+    public ResponseEntity<String> generateNewPassword(@PathVariable long id) {
+        UserResponse newRandomPassword = userService.createNewRandomPassword(id);
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.generateToken("Сгенерирован новый пароль", newRandomPassword, 10));
+    }
 }
 
