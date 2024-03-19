@@ -1,304 +1,144 @@
 package ru.kulik.registration.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ru.kulik.registration.DTO.UpdatePasswordDto;
-import ru.kulik.registration.DTO.UpdateUserInfoDto;
-import ru.kulik.registration.DTO.UserDto;
-import ru.kulik.registration.DTO.UserResponseDto;
-import ru.kulik.registration.exception.SubscriptionException;
-import ru.kulik.registration.mail.EmailSenderService;
-import ru.kulik.registration.security.Password;
+import ru.kulik.registration.DTO.request.UpdateInfo;
+import ru.kulik.registration.DTO.request.UpdatePassword;
+import ru.kulik.registration.DTO.request.UserAuthenticate;
+import ru.kulik.registration.DTO.request.UserRequest;
+import ru.kulik.registration.DTO.response.UserResponse;
 import ru.kulik.registration.model.User;
-import ru.kulik.registration.model.UserRole;
+import ru.kulik.registration.service.TokenService;
 import ru.kulik.registration.service.UserService;
 import ru.kulik.registration.util.UserValidator;
 import ru.kulik.registration.util.ValidationUtil;
 
-import java.net.URI;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Контроллер для управления пользователями.
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
 public class UserController {
     private final UserService userService;
     private final UserValidator userValidator;
-    private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
-    private final EmailSenderService emailService;
+    private final TokenService tokenService;
 
-    @Autowired
-    public UserController(UserService userService, UserValidator userValidator, PasswordEncoder passwordEncoder, ModelMapper modelMapper, EmailSenderService emailService) {
-        this.userService = userService;
-        this.userValidator = userValidator;
-        this.passwordEncoder = passwordEncoder;
-        this.modelMapper = modelMapper;
-        this.emailService = emailService;
-    }
 
-    /**
-     * Добавляет нового пользователя.
-     */
+    @Operation(
+            summary = "Добавляет нового пользователя.",
+            description = "Принимает данные нового пользователя в формате JSON. Возвращает JWT token с данными пользователя.")
     @PostMapping("/add")
-    public ResponseEntity<?> addUser(@RequestBody @Valid UserDto user, BindingResult bindingResult) {
-        User userMap = modelMapper.map(user, User.class);
-        userValidator.validate(userMap, bindingResult);
+    public ResponseEntity<?> addUser(@RequestBody @Valid UserRequest user, BindingResult bindingResult) {
+        userValidator.validate(modelMapper.map(user, User.class), bindingResult);
         if (bindingResult.hasErrors()) {
             return ValidationUtil.handleValidationErrors(bindingResult);
         }
-        userService.createUser(user);
-        emailService.sendEmail(user.getEmail(),"Добро пожаловать",user.getFirstName()+" Приветствуем Вас!");
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(user.getId())
-                .toUri();
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(tokenService.createUser(user));
     }
 
-    /**
-     * Обновляет данные о пользователе. Имя, фамилию, дату рождения.
-     *
-     * @param id      id пользователя.
-     * @param request json с данными.
-     * @return ResponseEntity с обновленным пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
-     */
+    @Operation(
+            summary = "Обновляет данные о пользователе. Имя, фамилию, дату рождения.",
+            description = "Принимает идентификатор пользователя и данные для обновления в формате JSON. Возвращает ResponseEntity с обновленным пользователем и статусом OK.")
     @PutMapping("/update-user-info/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable long id, @RequestBody @Valid UpdateUserInfoDto request, BindingResult bindingResult) {
+    public ResponseEntity<?> updateUser(@PathVariable long id, @RequestBody @Valid UpdateInfo updateInfo, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ValidationUtil.handleValidationErrors(bindingResult);
         }
-        Optional<UserDto> user = userService.getUserByID(id);
-        if (user.isPresent()) {
-            UserDto userUpdate = user.get();
-            userUpdate.setFirstName(request.getFirstName());
-            userUpdate.setLastName(request.getLastName());
-            userUpdate.setDateOfBirth(request.getDateOfBirth());
-            userService.save(userUpdate);
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(userUpdate), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.updateUserInfo(id, updateInfo));
     }
 
-
-    /**
-     * Получает пользователя по идентификатору.
-     *
-     * @param id Идентификатор пользователя.
-     * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
-     */
-    @GetMapping("{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable long id) {
-        Optional<UserDto> user = userService.getUserByID(id);
-        if (user.isPresent()) {
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @Operation(
+            summary = "Получает пользователя по идентификатору.",
+            description = "Принимает идентификатор пользователя. Возвращает ResponseEntity с пользователем и статусом OK.")
+    @GetMapping("/{id}")
+    public ResponseEntity<String> getUserById(@PathVariable long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.getUserByID(id));
     }
 
-    /**
-     * Получает пользователя по email.
-     *
-     * @param email email пользователя.
-     * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
-     */
+    @Operation(
+            summary = "Получает пользователя по email.",
+            description = "Принимает email пользователя. Возвращает JWT token с данными пользователя и статусом OK.")
     @GetMapping("/by-email")
-    public ResponseEntity<UserResponseDto> getUserByEmail(@RequestParam String email) {
-        Optional<UserDto> user = userService.getUserByEmail(email);
-        if (user.isPresent()) {
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<String> getUserByEmail(@RequestParam String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.getUserByEmail(email));
     }
 
-    /**
-     * Получает пользователя по номеру телефона.
-     *
-     * @param phone номер тел. пользователя.
-     * @return ResponseEntity с пользователем и статусом ОК, или NOT_FOUND, если пользователь не найден.
-     */
+    @Operation(
+            summary = "Получает пользователя по номеру телефона.",
+            description = "Принимает номер телефона пользователя. Возвращает JWT token с данными пользователя и статусом OK.")
     @GetMapping("/by-phone-number")
-    public ResponseEntity<UserResponseDto> getUserByPhoneNumber(@RequestParam String phone) {
-        Optional<UserDto> user = userService.getUserByPhone(phone);
-        if (user.isPresent()) {
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<String> getUserByPhoneNumber(@RequestParam String phone) {
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.getUserByPhone(phone));
     }
 
-    /**
-     * Удаляет пользователя по идентификатору.
-     *
-     * @return Ответ со статусом ОК, или NOT_FOUND, если пользователь не найден.
-     */
+    @Operation(
+            summary = "Удаляет пользователя по идентификатору.",
+            description = "Принимает идентификатор пользователя. Возвращает ответ со статусом OK и список пользователей.")
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable long id) {
-        if (userService.getUserByID(id).isPresent()) {
-            userService.delete(id);
-            return ResponseEntity.ok("User with id " + id + " deleted.");
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<List<UserResponse>> deleteUser(@PathVariable long id) {
+        userService.deleteUserByID(id);
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
     }
 
-    /**
-     * Получает всех пользователей.
-     *
-     * @return ResponseEntity с пользователями и статусом ОК, или NOT_FOUND, если пользователи не найдены.
-     */
+    @Operation(
+            summary = "Получает всех пользователей.",
+            description = "Возвращает ResponseEntity со списком пользователей и статусом OK.")
     @GetMapping("/all")
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        List<UserDto> users = userService.getAllUsers();
-        if (!users.isEmpty()) {
-
-            List<UserResponseDto> responseDtos = users.stream()
-                    .map(UserResponseDto::fromUserDto)
-                    .collect(Collectors.toList());
-            return new ResponseEntity<>(responseDtos, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsers());
     }
 
-    /**
-     * Аутентификация пользователя по номеру телефона и паролю.
-     *
-     * @param userAuthenticate DTO с данными аутентификации (номер телефона и пароль).
-     * @return ResponseEntity с пользователем и статусом OK, или UNAUTHORIZED, если аутентификация не удалась.
-     */
+    @Operation(summary = "Аутентификация пользователя по номеру телефона и паролю.",
+            description = "Возвращает JWT token с данными пользователя и статусом OK.")
     @PostMapping("/authenticate")
-    public ResponseEntity<UserResponseDto> authenticate(@RequestBody UserDto userAuthenticate) {
-        Optional<UserDto> user = userService.getUserByPhone(userAuthenticate.getPhoneNumber());
-        if (passwordEncoder.matches(userAuthenticate.getPassword(), user.get().getPassword())) {
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<String> authenticate(@RequestBody UserAuthenticate userAuthenticate) {
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.authenticate(userAuthenticate));
     }
 
-    /**
-     * Обновление пароля пользователя.
-     *
-     * @param id      Идентификатор пользователя.
-     * @param request DTO с данными для обновления пароля (старый пароль и новый пароль).
-     * @return ResponseEntity с пользователем и статусом OK, или UNAUTHORIZED, если старый пароль не совпадает.
-     */
+    @Operation(
+            summary = "Обновляет пароль пользователю по его ID.",
+            description = "Возвращает DTO с данными пользователя и статусом OK.")
+
     @PutMapping("/password/{id}")
-    public ResponseEntity<?> updatePassword(@PathVariable long id, @RequestBody @Valid UpdatePasswordDto request, BindingResult bindingResult) {
+    public ResponseEntity<?> updatePassword(@PathVariable long id, @RequestBody @Valid UpdatePassword request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ValidationUtil.handleValidationErrors(bindingResult);
         }
-        Optional<UserDto> user = userService.getUserByID(id);
-        if (passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
-            user.get().setPassword(passwordEncoder.encode(request.getPasswordNew()));
-            userService.save(user.get());
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
-        } else {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.updatePassword(id, request));
     }
 
-    /**
-     * Обновление даты окончания подписки пользователя.
-     *
-     * @param id       Идентификатор пользователя.
-     * @param dateTime дата для обновления окончания подписки.
-     * @return ResponseEntity с пользователем и статусом OK.
-     */
+    @Operation(
+            summary = "Обновляет дату окончания подписки пользователя.",
+            description = "Возвращает JWT token с данными пользователя и статусом OK.")
     @PutMapping("/subscription/{id}")
-    public ResponseEntity<UserResponseDto> updateSubscription(@PathVariable long id, @RequestParam String dateTime) {
-        try {
-            LocalDateTime localDateTime = LocalDateTime.parse(dateTime);
-            Optional<UserDto> user = userService.getUserByID(id);
-            if (user.isPresent()) {
-                user.get().setSubscriptionEndDate(localDateTime);
-                userService.save(user.get());
-                return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (DateTimeParseException ex) {
-            throw new SubscriptionException("Не валидная дата. Дата должна быть в формате 2023-12-31Т23:59:59, обратите внимание о наличии Т между датой и временем.", "Invalid date format.");
-        }
+    public ResponseEntity<String> updateSubscription(@PathVariable long id, @RequestParam String dateTime) {
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.updateSubscription(id, dateTime));
     }
 
-    /**
-     * Обновление роли пользователя на admin.
-     *
-     * @param id Идентификатор пользователя.
-     * @return ResponseEntity с пользователем и статусом OK в случае успеха, иначе BAD_REQUEST.
-     */
+    @Operation(
+            summary = "Обновляет роль пользователя.",
+            description = "Возвращает JWT token с данными пользователя и статусом OK.")
     @PutMapping("/role/{id}")
-    public ResponseEntity<UserResponseDto> updateRole(@PathVariable long id, @RequestParam boolean param) {
-        Optional<UserDto> user = userService.getUserByID(id);
-        if (user.isPresent()) {
-            if (param) {
-                user.get().setRole(UserRole.ADMIN);
-                userService.save(user.get());
-            } else {
-                user.get().setRole(UserRole.USER);
-                userService.save(user.get());
-            }
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public ResponseEntity<String> updateRole(@PathVariable long id, @RequestParam boolean param) {
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.updateRole(id, param));
     }
 
-    /**
-     * Блокировка пользователя.
-     *
-     * @param id id пользователя.
-     * @return ResponseEntity с пользователем и статусом OK в случае успеха, иначе BAD_REQUEST.
-     */
+    @Operation(
+            summary = "Блокирует или разблокирует пользователя.",
+            description = "Возвращает JWT token с данными пользователя и статусом OK.")
     @PutMapping("/active/{id}")
-    public ResponseEntity<UserResponseDto> updateActive(@PathVariable long id, @RequestParam boolean param) {
-        Optional<UserDto> user = userService.getUserByID(id);
-        if (user.isPresent()) {
-            if (param) {
-                user.get().setActive(true);
-                userService.save(user.get());
-            } else {
-                user.get().setActive(false);
-                userService.save(user.get());
-            }
-            return new ResponseEntity<>(UserResponseDto.fromUserDto(user.get()), HttpStatus.OK);
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
-
-    /**
-     * Восстановление пароля. Новый пароль отправляется на почту указанную при регистрации.
-     * @param id id пользователя.
-     * @return статус OK в случае успеха, иначе BAD_REQUEST.
-     */
-    @PutMapping("/update-password/{id}")
-    public ResponseEntity<?> updatePassword(@PathVariable long id) {
-        Optional<UserDto> user = userService.getUserByID(id);
-        if (user.isPresent()) {
-            StringBuilder newPassword = Password.generate();
-            user.get().setPassword(passwordEncoder.encode(newPassword.toString()));
-            userService.save(user.get());
-            emailService.sendEmail(user.get().getEmail(), "Восстановление пароля", "Ваш новый пароль: " + newPassword);
-            return  ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<String> updateActive(@PathVariable long id, @RequestParam boolean param) {
+        return ResponseEntity.status(HttpStatus.OK).body(tokenService.updateActive(id, param));
     }
 }
 
