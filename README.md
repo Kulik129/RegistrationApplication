@@ -31,24 +31,9 @@
 > - RESTful API
 > - JUnit 5
 > - Maven
+> - Swagger
+> - Aspects
 
-## Компоненты
-
-📁 **_Проект состоит из следующих компонентов:_**
-
-> - `CorsConfig`: Класс конфигурации для обработки междоменных запросов (CORS).
-> - `UserController`: Контроллер для обработки HTTP-запросов, связанных с пользователями.
-> - `GlobalExceptionHandler`: Глобальный обработчик исключений.
-> - `ApiValidationError`: Представляет детали ошибки валидации для ответов API.
-> - `UserDTO`: Поля, используемые для передачи данных между слоями приложения.
-> - `ApiException`: Пользовательские исключения.
-> - `User`: Модель пользователя, представляющая сущность в базе данных.
-> - `UserRepository`: Интерфейс репозитория для сущностей User, расширяющий JpaRepository.
-> - `WebSecurityConfig`: Класс безопасности приложения, шифрование паролей и настройка доступа к ссылкам.
-> - `UserService`: Интерфейс для управления пользователями.
-> - `UserServiceImpl`: Реализация интерфейса UserService, включая методы для сохранения, получения и удаления пользователей.
-> - `UserValidator`: Класс валидатора для объектов User, проверяющий уникальность email и номера телефона.
-> - `application.properties`: Файл конфигурации для настройки приложения.
 
 ---
 ### **Важно для application.properties:**  🚨
@@ -114,7 +99,7 @@
 
 ---
 
-# _Ниже приведены примеры запросов и ожидаемых ответов для каждого эндпоинта._
+# _Ниже приведены примеры запросов для каждого эндпоинта._
 
 > ## 🫧 1. Добавление нового пользователя
 
@@ -137,12 +122,7 @@ _**Content-Type: application/json**_
 }
 ```
 
-### Ответ:
-
-```http
-HTTP/1.1 201 Created
-Location: /add/123  # где 123 - идентификатор созданного пользователя
-```
+___
 
 > ## 🫧 2. Обновление данных пользователя
 
@@ -162,28 +142,7 @@ PUT /api/v1/users/update-user-info/123
 }
 ```
 
-### Ответ:
-
-```http
-HTTP/1.1 200 OK
-```
-
-**_Content-Type: application/json_**
-
-```json
-{
-  "id": 123,
-  "first_name": "John",
-  "last_name": "Doe",
-  "date_of_birth": "1990-01-02",
-  "phone_number": "89123456789",
-  "email": "john.doe@example.com",
-  "registration_date": "2023-11-19T14:27:55",
-  "subscription_end_date": "2044-11-23T14:31:11",
-  "role": "USER",
-  "active": true
-}
-```
+___
 
 > ## 🫧 3. Получение пользователя по идентификатору
 
@@ -193,28 +152,9 @@ HTTP/1.1 200 OK
 GET /api/v1/users/123
 ```
 
-### Ответ:
 
-```http
-HTTP/1.1 200 OK
-```
+___
 
-**_Content-Type: application/json_**
-
-```json
-{
-  "id": 123,
-  "first_name": "John",
-  "last_name": "Doe",
-  "date_of_birth": "1990-01-02",
-  "phone_number": "89123456789",
-  "email": "john.doe@example.com",
-  "registration_date": "2023-11-19T14:27:55",
-  "subscription_end_date": "2044-11-23T14:31:11",
-  "role": "USER",
-  "active": true
-}
-```
 
 > ## 🫧 4. Получение пользователя по email
 
@@ -224,28 +164,8 @@ HTTP/1.1 200 OK
 GET /api/v1/users/by-email?email=john.doe@example.com
 ```
 
-### Ответ:
+___
 
-```http
-HTTP/1.1 200 OK
-```
-
-**_Content-Type: application/json_**
-
-```json
-{
-  "id": 123,
-  "first_name": "John",
-  "last_name": "Doe",
-  "date_of_birth": "1990-01-02",
-  "phone_number": "89123456789",
-  "email": "john.doe@example.com",
-  "registration_date": "2023-11-19T14:27:55",
-  "subscription_end_date": "2044-11-23T14:31:11",
-  "role": "USER",
-  "active": true
-}
-```
 
 > ## 🫧 5. Удаление пользователя
 
@@ -255,14 +175,7 @@ HTTP/1.1 200 OK
  DELETE /api/v1/users/delete/1
  ```
 
-### Ответ:
-
-```http
-HTTP/1.1 200 OK
-Content-Type: text/plain
-
-User with id 123 deleted.
-```
+___
 
 > ## 🫧 6. Получение всех пользователей
 
@@ -272,11 +185,7 @@ User with id 123 deleted.
 GET /api/v1/users/all
 ```
 
-### Ответ:
 
-```http
-HTTP/1.1 200 OK
-```
 
 **_Content-Type: application/json_**
 
@@ -298,6 +207,8 @@ HTTP/1.1 200 OK
 ]
 ```
 
+___
+
 > ## 🫧 7. Аутентификация пользователя
 
 ### Запрос:
@@ -315,28 +226,7 @@ POST /api/v1/users/authenticate
 }
 ```
 
-### Ответ:
-
-```http
-HTTP/1.1 200 OK
-```
-
-**_Content-Type: application/json_**
-
-```json
-{
-  "id": 123,
-  "first_name": "John",
-  "last_name": "Doe",
-  "date_of_birth": "1990-01-02",
-  "phone_number": "89123456789",
-  "email": "john.doe@example.com",
-  "registration_date": "2023-11-19T14:27:55",
-  "subscription_end_date": "2044-11-23T14:31:11",
-  "role": "USER",
-  "active": true
-}
-```
+___
 
 > ## 🫧 8. Обновление пароля пользователя
 
@@ -346,7 +236,6 @@ HTTP/1.1 200 OK
 PUT /api/v1/users/password/123
 ```
 
-**_Content-Type: application/json_**
 
 ```json
 {
@@ -355,26 +244,7 @@ PUT /api/v1/users/password/123
 }
 ```
 
-### Ответ:
-
-```http
-HTTP/1.1 200 OK
-```
-**_Content-Type: application/json_**
-```json
-{
-  "id": 123,
-  "first_name": "John",
-  "last_name": "Doe",
-  "date_of_birth": "1990-01-02",
-  "phone_number": "89123456789",
-  "email": "john.doe@example.com",
-  "registration_date": "2023-11-19T14:27:55",
-  "subscription_end_date": "2044-11-23T14:31:11",
-  "role": "USER",
-  "active": true
-}
-```
+___
 
 > ## 🫧 9. Обновление роли пользователя, например ADMIN
 
@@ -382,22 +252,7 @@ HTTP/1.1 200 OK
 PUT /api/v1/users/role/1?param=true
 ```
 
-Ответ:
-
-```json
-{
-  "id": 1,
-  "firstName": "John",
-  "lastName": "Doe",
-  "dateOfBirth": "1990-01-02",
-  "email": "john.doe@example.com",
-  "phoneNumber": "89123456789",
-  "registrationDate": "2023-11-19T14:27:55.105896",
-  "subscriptionEndDate": "2023-12-31T23:59:59",
-  "role": "ADMIN",
-  "active": true
-}
-```
+___
 
 > ## 🫧 10. Блокировка пользователя
 
@@ -405,51 +260,16 @@ PUT /api/v1/users/role/1?param=true
 PUT /api/v1/users/active/1?param=false
 ```
 
-Ответ:
-
-```json
-{
-  "id": 1,
-  "firstName": "John",
-  "lastName": "Doe",
-  "dateOfBirth": "1990-01-02",
-  "email": "john.doe@example.com",
-  "phoneNumber": "89123456789",
-  "registrationDate": "2023-11-19T14:27:55.105896",
-  "subscriptionEndDate": "2023-12-31T23:59:59",
-  "role": "ADMIN",
-  "active": false
-}
- ```
+___
 
 > ## 🫧 11. Обновление окончания даты подписки
  ```http 
 PUT /api/v1/users/subscription/1?dateTime=2023-12-31T23:59:59
 ```
 
-Ответ:
-
-```json
-{
-    "id": 2,
-    "first_name": "John",
-    "last_name": "Doe",
-    "date_of_birth": "1990-01-02",
-    "phone_number": "89123456789",
-    "email": "john.doe@example.com",
-    "registration_date": "2023-11-20T12:44:27",
-    "subscription_end_date": "2023-12-31T23:59:59",
-    "role": "USER",
-    "active": true
-}
-```
+___
 
 > ## 🫧 12. Восстановление пароля
  ```http 
 PUT /api/v1/users/update-password/1
-```
-
-Ответ:
-```http
-HTTP/1.1 200 OK
 ```
